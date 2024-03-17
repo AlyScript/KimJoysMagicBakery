@@ -4,9 +4,15 @@ import bakery.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class CardUtils {
+
+    public CardUtils() {
+
+    }
     
     public ArrayList<CustomerOrder> readCustomerFile(String path, ArrayList<Layer> layers) {
         ArrayList<CustomerOrder> result = new ArrayList<>();
@@ -63,20 +69,18 @@ public class CardUtils {
         return result;
     }
 
-    // Extra method added to help with the stringToCustomerOrder
-    private ArrayList<Ingredient> helper(String ingredient, ArrayList<Layer> layers) {
-        ArrayList<Ingredient> result = new ArrayList<>();
-        HashSet<Layer> layerSet = new HashSet<>(layers);
-        for(Layer layer : layerSet) {
-            if(ingredient.toString().equals(layer.toString())) {
-                result.addAll(layer.getRecipe());
-                break;
-            }
+    // Helper method added to help with the stringToCustomerOrder
+    // Make hashmap so we can get layers by name
+    private HashMap<String, Layer> buildLayerMap(ArrayList<Layer> layers) {
+        HashMap<String, Layer> layerMap = new HashMap<>(); 
+        for(int i=0; i<layers.size(); i++) {
+            layerMap.put(layers.get(i).toString(), layers.get(i));
         }
-        return result;
+        return layerMap;
     }
  
     private CustomerOrder stringToCustomerOrder(String str, ArrayList<Layer> layers) {
+        HashMap<String, Layer> layerMap = buildLayerMap(layers);
         String[] fileString = str.split(",");
         int level = Integer.parseInt(fileString[0].strip());
         String name = fileString[1].strip();
@@ -91,20 +95,18 @@ public class CardUtils {
         ArrayList<Ingredient> garnish = new ArrayList<>();
         for(String ingredient : recipeStringArr) {
             ingredient = ingredient.strip();
-            if(!helper(ingredient, layers).isEmpty()) {
-                recipe.addAll(helper(ingredient, layers));
+            if(layerMap.containsKey(ingredient)) {
+                recipe.add(layerMap.get(ingredient));
             } else {
                 recipe.add(new Ingredient(ingredient));
-
             }
         }
         for(String ingredient : garnishStringArr) {
             ingredient = ingredient.strip();
-            if(!helper(ingredient, layers).isEmpty()) {
-                garnish.addAll(helper(ingredient, layers));
+            if(layerMap.containsKey(ingredient)) {
+                garnish.add(layerMap.get(ingredient));
             } else {
-                garnish.add(new Ingredient(ingredient.strip()));
-
+                garnish.add(new Ingredient(ingredient));
             }
         }
         return new CustomerOrder(name, recipe, garnish, level);
