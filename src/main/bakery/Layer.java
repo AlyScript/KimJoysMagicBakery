@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Layer extends Ingredient{
     private ArrayList<Ingredient> recipe;
+    private static final long serialVersionUID = 11085168;
      
     public Layer(String name, ArrayList<Ingredient> recipe) {
         super(name);    

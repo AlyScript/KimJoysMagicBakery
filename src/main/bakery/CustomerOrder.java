@@ -3,6 +3,10 @@ package bakery;
 import java.util.ArrayList;
 
 public class CustomerOrder {
+    public enum CustomerOrderStatus {
+        WAITING, FULFILLED, GARNISHED, IMPATIENT, GIVEN_UP
+    }
+    private CustomerOrderStatus status;
     private ArrayList<Ingredient> garnish = new ArrayList<>();
     private int level;
     private String name;
@@ -13,6 +17,7 @@ public class CustomerOrder {
         this.recipe = recipe;
         this.garnish = garnish;
         this.level = level;
+        this.status = CustomerOrderStatus.WAITING;
     }
 
     public ArrayList<Ingredient> getGarnish(){
@@ -47,5 +52,17 @@ public class CustomerOrder {
 
     public String toString() {
         return String.format("%s, %s, %s, %d", name, recipe, garnish, level);
+    }
+
+    public CustomerOrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CustomerOrderStatus status) {
+        this.status = status;
+    }
+
+    public void abandon() {
+        this.status = CustomerOrderStatus.GIVEN_UP;
     }
 }

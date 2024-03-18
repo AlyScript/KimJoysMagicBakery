@@ -5,16 +5,14 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 
 public class CardUtils {
 
-    public CardUtils() {
+    private CardUtils() {
 
     }
     
-    public ArrayList<CustomerOrder> readCustomerFile(String path, ArrayList<Layer> layers) {
+    public static ArrayList<CustomerOrder> readCustomerFile(String path, ArrayList<Layer> layers) {
         ArrayList<CustomerOrder> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -31,7 +29,7 @@ public class CardUtils {
         return result;
     }
 
-    public ArrayList<Ingredient> readIngredientFile(String path) {
+    public static ArrayList<Ingredient> readIngredientFile(String path) {
         ArrayList<Ingredient> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -50,7 +48,7 @@ public class CardUtils {
         return result;
     }
 
-    public ArrayList<Layer> readLayerFile(String path) {
+    public static ArrayList<Layer> readLayerFile(String path) {
         ArrayList<Layer> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -71,7 +69,7 @@ public class CardUtils {
 
     // Helper method added to help with the stringToCustomerOrder
     // Make hashmap so we can get layers by name
-    private HashMap<String, Layer> buildLayerMap(ArrayList<Layer> layers) {
+    private static HashMap<String, Layer> buildLayerMap(ArrayList<Layer> layers) {
         HashMap<String, Layer> layerMap = new HashMap<>(); 
         for(int i=0; i<layers.size(); i++) {
             layerMap.put(layers.get(i).toString(), layers.get(i));
@@ -79,7 +77,7 @@ public class CardUtils {
         return layerMap;
     }
  
-    private CustomerOrder stringToCustomerOrder(String str, ArrayList<Layer> layers) {
+    private static CustomerOrder stringToCustomerOrder(String str, ArrayList<Layer> layers) {
         HashMap<String, Layer> layerMap = buildLayerMap(layers);
         String[] fileString = str.split(",");
         int level = Integer.parseInt(fileString[0].strip());
@@ -112,7 +110,7 @@ public class CardUtils {
         return new CustomerOrder(name, recipe, garnish, level);
     }
     
-    private ArrayList<Ingredient> stringToIngredients(String str) {
+    private static ArrayList<Ingredient> stringToIngredients(String str) {
         ArrayList<Ingredient> result = new ArrayList<>();
         String[] nameCount = str.split(",");
         String ingredientName = nameCount[0];
@@ -123,7 +121,7 @@ public class CardUtils {
         return result;
     }
 
-    private ArrayList<Layer> stringToLayers(String str) {
+    private static ArrayList<Layer> stringToLayers(String str) {
         ArrayList<Layer> result = new ArrayList<>();
         ArrayList<Ingredient> recipe = new ArrayList<>();
         String[] nameRecipe = str.split(",");
