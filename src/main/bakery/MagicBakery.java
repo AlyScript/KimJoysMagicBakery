@@ -2,10 +2,12 @@ package bakery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 
 public class MagicBakery {
     public Collection<Player> players;
     private int currentPlayerIndex;
+    private int actionsUsed = 0;
 
     public MagicBakery(long seed, String ingredientDeckFile, String layerDeckFile) {
         players = new LinkedList<Player>();
@@ -13,10 +15,17 @@ public class MagicBakery {
     }
 
     public boolean endTurn() {
-        if(players.isEmpty()) {
+        if (getActionsRemaining() > 0) {
+            System.out.println("You still have actions remaining.");
             return false;
         }
+    
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+    
+        if (currentPlayerIndex == 0) {
+            System.out.println("New round");
+        }
+    
         return true;
     }
 
@@ -28,11 +37,7 @@ public class MagicBakery {
     }
 
     public int getActionsRemaining() {
-        return getActionsPermitted() - 1;
-    }
-
-    public void startGame(ArrayList<String> playerNames, String customerDeckFile) {
-        
+        return getActionsPermitted() - actionsUsed;
     }
 
     public LinkedList<Player> getPlayers() {
@@ -41,6 +46,20 @@ public class MagicBakery {
 
     public Player getCurrentPlayer() {
         return getPlayers().get(currentPlayerIndex);
+    }
+
+    public void passIngredient(Ingredient ingredient, Player recipient) {
+        if (getActionsRemaining() > 0) {
+            getCurrentPlayer().removeFromHand(ingredient);
+            recipient.addToHand(ingredient);
+            actionsUsed++;
+        } else {
+            System.out.println("No actions remaining.");
+        }
+    }
+
+    public void startGame(List<String> playerNames, String customerDeckFile) {
+        
     }
 
 }

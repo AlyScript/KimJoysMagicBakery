@@ -2,6 +2,10 @@ package util;
 import java.io.Console;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+
+import bakery.MagicBakery;
+import bakery.Player;
 
 public class ConsoleUtils {
     private Console console;
@@ -21,13 +25,31 @@ public class ConsoleUtils {
         return console.readLine(fmt, args);
     }
 
+    public Player promptForExistingPlayer(String prompt, MagicBakery bakery) {
+        Player chosenPlayer = null;
+        Player currentPlayer = bakery.getCurrentPlayer();
+        while (chosenPlayer == null) {
+            String input = console.readLine();
+            for (Player player : bakery.getPlayers()) {
+                if (player.toString().equalsIgnoreCase(input) && !player.equals(currentPlayer)) {
+                    chosenPlayer = player;
+                    break;
+                }
+            }
+            if (chosenPlayer == null) {
+                System.out.println("Player not found, please try again.");
+            }
+        }
+        return chosenPlayer;
+    }
+
     public File promptForFilePath(String prompt) {
         System.out.println(prompt);
         String path = console.readLine();
         return new File(path);
     }
 
-    public ArrayList<String> promptForNewPlayers(String prompt) {
+    public List<String> promptForNewPlayers(String prompt) {
         ArrayList<String> result = new ArrayList<>();
         String input;
         do {
@@ -58,4 +80,5 @@ public class ConsoleUtils {
         } while(true);
         return input.equalsIgnoreCase("Y");
     }
+
 }

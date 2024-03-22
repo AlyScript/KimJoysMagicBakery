@@ -1,18 +1,19 @@
 package bakery;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CustomerOrder {
     public enum CustomerOrderStatus {
         WAITING, FULFILLED, GARNISHED, IMPATIENT, GIVEN_UP
     }
     private CustomerOrderStatus status;
-    private ArrayList<Ingredient> garnish = new ArrayList<>();
+    private List<Ingredient> garnish = new ArrayList<>();
     private int level;
     private String name;
-    private ArrayList<Ingredient> recipe = new ArrayList<>();
+    private List<Ingredient> recipe = new ArrayList<>();
 
-    public CustomerOrder(String name, ArrayList<Ingredient> recipe, ArrayList<Ingredient> garnish, int level) {
+    public CustomerOrder(String name, List<Ingredient> recipe, List<Ingredient> garnish, int level) {
         this.name = name;
         this.recipe = recipe;
         this.garnish = garnish;
@@ -20,7 +21,7 @@ public class CustomerOrder {
         this.status = CustomerOrderStatus.WAITING;
     }
 
-    public ArrayList<Ingredient> getGarnish(){
+    public List<Ingredient> getGarnish(){
         return garnish;
     }
 
@@ -37,7 +38,7 @@ public class CustomerOrder {
         return level;
     }
 
-    public ArrayList<Ingredient> getRecipe() {
+    public List<Ingredient> getRecipe() {
         return recipe;
     }
 

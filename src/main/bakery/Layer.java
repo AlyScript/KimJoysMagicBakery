@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Layer extends Ingredient{
-    private ArrayList<Ingredient> recipe;
+    private List<Ingredient> recipe;
     private static final long serialVersionUID = 11085168;
      
-    public Layer(String name, ArrayList<Ingredient> recipe) {
+    public Layer(String name, List<Ingredient> recipe) {
         super(name);    
         this.recipe = recipe;
     }

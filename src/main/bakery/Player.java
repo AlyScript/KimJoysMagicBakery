@@ -1,9 +1,9 @@
 package bakery;
-
 import java.util.ArrayList;
+import java.util.List;
 
 public class Player {
-    private ArrayList<Ingredient> hand;
+    private List<Ingredient> hand;
     private String name;
 
     public Player(String name) {
@@ -11,7 +11,7 @@ public class Player {
         hand = new ArrayList<>();
     }
 
-    public void addToHand(ArrayList<Ingredient> ingredients) {
+    public void addToHand(List<Ingredient> ingredients) {
         hand.addAll(ingredients);
     }
 
@@ -27,7 +27,7 @@ public class Player {
         hand.remove(ingredient);
     }
 
-    public ArrayList<Ingredient> getHand() {
+    public List<Ingredient> getHand() {
         return hand;
     }
 

@@ -5,14 +5,16 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Collection;
 
 public class CardUtils {
 
     private CardUtils() {
-
+    
     }
     
-    public static ArrayList<CustomerOrder> readCustomerFile(String path, ArrayList<Layer> layers) {
+    public static List<CustomerOrder> readCustomerFile(String path, Collection<Layer> layers) {
         ArrayList<CustomerOrder> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -29,7 +31,7 @@ public class CardUtils {
         return result;
     }
 
-    public static ArrayList<Ingredient> readIngredientFile(String path) {
+    public static List<Ingredient> readIngredientFile(String path) {
         ArrayList<Ingredient> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -48,7 +50,7 @@ public class CardUtils {
         return result;
     }
 
-    public static ArrayList<Layer> readLayerFile(String path) {
+    public static List<Layer> readLayerFile(String path) {
         ArrayList<Layer> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -77,8 +79,8 @@ public class CardUtils {
         return layerMap;
     }
  
-    private static CustomerOrder stringToCustomerOrder(String str, ArrayList<Layer> layers) {
-        HashMap<String, Layer> layerMap = buildLayerMap(layers);
+    private static CustomerOrder stringToCustomerOrder(String str, Collection<Layer> layers) {
+        HashMap<String, Layer> layerMap = buildLayerMap((ArrayList<Layer>) layers);
         String[] fileString = str.split(",");
         int level = Integer.parseInt(fileString[0].strip());
         String name = fileString[1].strip();
@@ -110,7 +112,7 @@ public class CardUtils {
         return new CustomerOrder(name, recipe, garnish, level);
     }
     
-    private static ArrayList<Ingredient> stringToIngredients(String str) {
+    private static List<Ingredient> stringToIngredients(String str) {
         ArrayList<Ingredient> result = new ArrayList<>();
         String[] nameCount = str.split(",");
         String ingredientName = nameCount[0];
@@ -121,7 +123,7 @@ public class CardUtils {
         return result;
     }
 
-    private static ArrayList<Layer> stringToLayers(String str) {
+    private static List<Layer> stringToLayers(String str) {
         ArrayList<Layer> result = new ArrayList<>();
         ArrayList<Ingredient> recipe = new ArrayList<>();
         String[] nameRecipe = str.split(",");
