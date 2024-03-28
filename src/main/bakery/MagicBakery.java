@@ -9,6 +9,10 @@ public class MagicBakery {
     private int currentPlayerIndex;
     private int actionsUsed = 0;
 
+    public enum ActionType {
+        DRAW_INGREDIENT, PASS_INGREDIENT, BAKE_LAYER, FULFIL_ORDER, REFRESH_PANTRY
+    }
+
     public MagicBakery(long seed, String ingredientDeckFile, String layerDeckFile) {
         players = new LinkedList<Player>();
         currentPlayerIndex = 0;
