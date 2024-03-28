@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import util.ConsoleUtils;
 
 public class MagicBakery {
     private Collection<Layer> layers;
@@ -26,6 +25,31 @@ public class MagicBakery {
         random = new Random(seed);
         players = new LinkedList<Player>();
         currentPlayerIndex = 0;
+    }
+
+    public void bakeLayer(Layer layer) {
+        if(getBakeableLayers().contains(layer)) {
+            Player currentPlayer = getCurrentPlayer();
+            List<Ingredient> recipe = new ArrayList<>(layer.getRecipe());
+    
+            for (Ingredient ingredient : recipe) {
+                if (currentPlayer.getHand().contains(ingredient)) {
+                    currentPlayer.removeFromHand(ingredient);
+                    pantryDiscard.add(ingredient);
+                } else if (currentPlayer.helpfulDuckCount() >= 1 && !(ingredient instanceof Layer)) {
+                    currentPlayer.removeHelpfulDuckFromHand();
+                    pantryDiscard.add(ingredient);
+                } else {
+                    System.out.println("Layer not bakeable.");
+                    return;
+                }
+            }
+    
+            currentPlayer.addToHand(layer);
+            this.layers.remove(layer);
+        } else {
+            System.out.println("Layer not bakeable.");
+        }
     }
 
     private Ingredient drawFromPantryDeck() {
@@ -89,12 +113,36 @@ public class MagicBakery {
         return getActionsPermitted() - actionsUsed;
     }
 
+    public Collection<Layer> getBakeableLayers() {
+        Collection<Layer> bakeableLayers = new ArrayList<>();
+        for(Layer layer : layers) {
+            int missingIngredients = 0;
+            if(getCurrentPlayer().getHand().containsAll(layer.getRecipe())) {
+                bakeableLayers.add(layer);
+            } else {
+                for(Ingredient ingredient : layer.getRecipe()) {
+                    if(!getCurrentPlayer().getHand().contains(ingredient)) {
+                        missingIngredients++;
+                    }
+                }
+            }
+            if(getCurrentPlayer().helpfulDuckCount() >= missingIngredients) {
+                bakeableLayers.add(layer);
+            }
+        }
+        return bakeableLayers;
+    }
+
     public LinkedList<Player> getPlayers() {
         return new LinkedList<>(this.players);
     }
 
     public Player getCurrentPlayer() {
         return getPlayers().get(currentPlayerIndex);
+    }
+
+    public Collection<Layer> getLayers() {
+        return layers;
     }
 
     public void passIngredient(Ingredient ingredient, Player recipient) {

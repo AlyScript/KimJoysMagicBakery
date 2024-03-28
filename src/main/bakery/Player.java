@@ -31,6 +31,26 @@ public class Player {
         return hand;
     }
 
+    // return number of helpful ducks in hand
+    public int helpfulDuckCount() {
+        int count = 0;
+        for(Ingredient ingredient : hand) {
+            if(ingredient.toString().equalsIgnoreCase("HELPFUL_DUCK")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public void removeHelpfulDuckFromHand() {
+        for(int i=0; i<hand.size(); i++) {
+            if(hand.get(i).toString().equalsIgnoreCase("HELPFUL_DUCK")) {
+                hand.remove(i);
+                return;
+            }
+        }
+    }
+
     public String getHandStr() {
         String result = "";
         for(int i=0; i<hand.size()-1; i++) {
