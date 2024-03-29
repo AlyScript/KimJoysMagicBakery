@@ -5,26 +5,37 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Stack;
+
+import util.CardUtils;
 
 public class MagicBakery {
+    private Customers customers;
     private Collection<Layer> layers;
     private Collection<Player> players;
     private Collection <Ingredient> pantry;
     private Collection<Ingredient> pantryDeck;
     private Collection<Ingredient> pantryDiscard;
     private Random random;
+    private static final long serialVersionUID = 11085168;
 
     private int currentPlayerIndex;
-    private int actionsUsed = 0;
+    private int actionsUsed;
 
     public enum ActionType {
         DRAW_INGREDIENT, PASS_INGREDIENT, BAKE_LAYER, FULFIL_ORDER, REFRESH_PANTRY
     }
 
     public MagicBakery(long seed, String ingredientDeckFile, String layerDeckFile) {
-        random = new Random(seed);
+        layers = CardUtils.readLayerFile(layerDeckFile);
         players = new LinkedList<Player>();
+        pantry = CardUtils.readIngredientFile(ingredientDeckFile);
+        pantryDeck = new Stack<>();
+        pantryDiscard = new Stack<>();
+        random = new Random(seed);
+
         currentPlayerIndex = 0;
+        actionsUsed = 0;
     }
 
     public void bakeLayer(Layer layer) {
@@ -166,10 +177,12 @@ public class MagicBakery {
     }
 
     public void startGame(List<String> playerNames, String customerDeckFile) {
+        // Instantiate players list
         for (String name : playerNames) {
             players.add(new Player(name));
         }
         Collections.shuffle((List) pantryDeck, random);
+        customers = new Customers(customerDeckFile, random, layers, players.size());
         for(int i=0; i<pantryDeck.size(); i++) {
             pantry.add(drawFromPantryDeck());
         }
