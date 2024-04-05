@@ -27,27 +27,27 @@ public class ConsoleUtils {
         return console.readLine();
     }
 
-    public String readLine(String fmt, Object args) {
-        return console.readLine(fmt, args);
-    }
+    public String readLine(String fmt, Object[] args) {
+            return console.readLine(fmt, args);
+        }
 
-    public ActionType promptForAction(String prompt) {
+    public ActionType promptForAction(String prompt, MagicBakery bakery) {
         System.out.println(prompt);
         String input;
         do {
             input = console.readLine();
             if (input.equalsIgnoreCase("D")) {
                 return ActionType.DRAW_INGREDIENT;
-            } else if (input.equalsIgnoreCase("P")) {
+            } else if (input.equalsIgnoreCase("P") && !bakery.getCurrentPlayer().getHand().isEmpty()) {
                 return ActionType.PASS_INGREDIENT;
-            } else if (input.equalsIgnoreCase("B")) {
+            } else if (input.equalsIgnoreCase("B") && !bakery.getBakeableLayers().isEmpty()) {
                 return ActionType.BAKE_LAYER;
-            } else if (input.equalsIgnoreCase("F")) {
+            } else if (input.equalsIgnoreCase("F") && !bakery.getFulfilableCustomers().isEmpty()) {
                 return ActionType.FULFIL_ORDER;
             } else if (input.equalsIgnoreCase("R")) {
                 return ActionType.REFRESH_PANTRY;
             } else {
-                System.out.println("Invalid input. Please enter D, P, B, F, or R.");
+                System.out.println("Invalid input. Please enter a valid action.");
             }
         } while (true);
     }
@@ -124,6 +124,7 @@ public class ConsoleUtils {
     }
 
     private Object promptEnumerateCollection(String prompt, Collection<Object> collection) {
+        System.out.println(prompt);
         if (collection.isEmpty()) {
             System.out.println("The collection is empty.");
             return null;

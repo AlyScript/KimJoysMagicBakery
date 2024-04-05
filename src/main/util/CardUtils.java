@@ -11,7 +11,7 @@ import java.util.Collection;
 public class CardUtils {
 
     private CardUtils() {
-    
+        
     }
     
     public static List<CustomerOrder> readCustomerFile(String path, Collection<Layer> layers) {

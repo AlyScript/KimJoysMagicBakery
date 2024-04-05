@@ -5,33 +5,38 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Stack;
-import java.util.stream.Collectors;
-import java.io.Serializable;
 
 import util.CardUtils;
 
 import bakery.CustomerOrder.CustomerOrderStatus;
 
-public class Customers implements Serializable {
+public class Customers implements java.io.Serializable {
     private Collection<CustomerOrder> activeCustomers;
     private Collection<CustomerOrder> customerDeck;
     private List<CustomerOrder> inactiveCustomers;
     private Random random;
 
-    private final long serialVersionUID = 11085168;
+    private static final long serialVersionUID = 11085168;
 
 
     public Customers(String deckFile, Random random, Collection<Layer> layers, int numPlayers) {
-        // initialise activeCustomers
         initialiseCustomerDeck(deckFile, layers, numPlayers);
+        activeCustomers = new PriorityQueue<>();
         inactiveCustomers = new ArrayList<>();
+        this.random = new Random();
     }
 
     public CustomerOrder addCustomerOrder() {
         inactiveCustomers.add(timePasses());
-        return null;
+        LinkedList<CustomerOrder> activeCustomerDeck = new LinkedList<>(activeCustomers);
+        if(!customerDeck.isEmpty()) {
+            activeCustomerDeck.addFirst(drawCustomer());
+            activeCustomers = activeCustomerDeck;
+        }
+        return timePasses();
     }
 
     public boolean customerWillLeaveSoon() {
@@ -62,7 +67,7 @@ public class Customers implements Serializable {
                 result.add(customerOrder);
             }
         }
-        return (Collection) result;
+        return result;
     }
 
     public Collection<CustomerOrder> getInactiveCustomersWithStatus(CustomerOrderStatus status) {
@@ -82,56 +87,64 @@ public class Customers implements Serializable {
          * 5 players: x1 Level 2, x6 Level 3
          */
         customerDeck = new Stack<>();
-        customerDeck.addAll(CardUtils.readCustomerFile(deckFile, layers));
-        Collections.shuffle((List) customerDeck, random);
+        List<CustomerOrder> tempCustomerDeck = new ArrayList<>();
+        tempCustomerDeck.addAll(CardUtils.readCustomerFile(deckFile, layers));
+        
+        ArrayList<CustomerOrder> level1CustomerOrders = new ArrayList<>();
+        ArrayList<CustomerOrder> level2CustomerOrders = new ArrayList<>();
+        ArrayList<CustomerOrder> level3CustomerOrders = new ArrayList<>();
+        
+        for(CustomerOrder customerOrder : tempCustomerDeck) {
+            if(customerOrder.getLevel() == 1) {
+                level1CustomerOrders.add(customerOrder);
+            } else if(customerOrder.getLevel() == 2) {
+                level2CustomerOrders.add(customerOrder);
+            } else if(customerOrder.getLevel() == 3) {
+                level3CustomerOrders.add(customerOrder);
+            }
+        }
 
-        List<CustomerOrder> level1CustomerOrders = customerDeck.stream()
-            .filter(order -> order.getLevel() == 1)
-            .collect(Collectors.toList());
-
-        List<CustomerOrder> level2CustomerOrders = customerDeck.stream()
-            .filter(order -> order.getLevel() == 2)
-            .collect(Collectors.toList());
-
-        List<CustomerOrder> level3CustomerOrders = customerDeck.stream()
-            .filter(order -> order.getLevel() == 3)
-            .collect(Collectors.toList());
+        Collections.shuffle(level1CustomerOrders);
+        Collections.shuffle(level2CustomerOrders);
+        Collections.shuffle(level3CustomerOrders);
 
         switch(numPlayers) {
             case 2:
-                activeCustomers.add(level1CustomerOrders.get(0));
-                activeCustomers.add(level1CustomerOrders.get(1));
-                activeCustomers.add(level1CustomerOrders.get(2));
-                activeCustomers.add(level1CustomerOrders.get(3));
-                activeCustomers.add(level2CustomerOrders.get(0));
-                activeCustomers.add(level2CustomerOrders.get(1));
-                activeCustomers.add(level3CustomerOrders.get(0));
+                customerDeck.add(level1CustomerOrders.get(0));
+                customerDeck.add(level1CustomerOrders.get(1));
+                customerDeck.add(level1CustomerOrders.get(2));
+                customerDeck.add(level1CustomerOrders.get(3));
+                customerDeck.add(level2CustomerOrders.get(0));
+                customerDeck.add(level2CustomerOrders.get(1));
+                customerDeck.add(level3CustomerOrders.get(0));
                 break;
             case (3 | 4):
-                activeCustomers.add(level1CustomerOrders.get(0));
-                activeCustomers.add(level2CustomerOrders.get(0));
-                activeCustomers.add(level2CustomerOrders.get(1));
-                activeCustomers.add(level3CustomerOrders.get(0));
-                activeCustomers.add(level3CustomerOrders.get(1));
-                activeCustomers.add(level3CustomerOrders.get(2));
-                activeCustomers.add(level3CustomerOrders.get(3));
+                customerDeck.add(level1CustomerOrders.get(0));
+                customerDeck.add(level2CustomerOrders.get(0));
+                customerDeck.add(level2CustomerOrders.get(1));
+                customerDeck.add(level3CustomerOrders.get(0));
+                customerDeck.add(level3CustomerOrders.get(1));
+                customerDeck.add(level3CustomerOrders.get(2));
+                customerDeck.add(level3CustomerOrders.get(3));
                 break;
             case 5:
-                activeCustomers.add(level2CustomerOrders.get(0));
-                activeCustomers.add(level3CustomerOrders.get(0));
-                activeCustomers.add(level3CustomerOrders.get(1));
-                activeCustomers.add(level3CustomerOrders.get(2));
-                activeCustomers.add(level3CustomerOrders.get(3));
-                activeCustomers.add(level3CustomerOrders.get(4));
-                activeCustomers.add(level3CustomerOrders.get(5));
+                customerDeck.add(level2CustomerOrders.get(0));
+                customerDeck.add(level3CustomerOrders.get(0));
+                customerDeck.add(level3CustomerOrders.get(1));
+                customerDeck.add(level3CustomerOrders.get(2));
+                customerDeck.add(level3CustomerOrders.get(3));
+                customerDeck.add(level3CustomerOrders.get(4));
+                customerDeck.add(level3CustomerOrders.get(5));
                 break;
         }
-        Collections.shuffle((List) customerDeck, random);
+        Collections.shuffle((List) customerDeck);
     }
 
     public boolean isEmpty() {
-        if(activeCustomers.isEmpty()) {
-            return true;
+        for(CustomerOrder customerOrder : activeCustomers) {
+            if(customerOrder != null) {
+                return true;
+            }
         }
         return false;
     }
