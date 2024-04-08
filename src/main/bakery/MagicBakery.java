@@ -300,7 +300,12 @@ public class MagicBakery implements java.io.Serializable {
                         }
                         break;
                     case FULFIL_ORDER:
-                        //fulfillOrder();
+                        boolean willGarnish = false;
+                        CustomerOrder customerOrderToFulfil = console.promptForCustomer("Choose a customer to fulfil: ", getFulfilableCustomers());
+                        if(customerOrderToFulfil.getGarnish().size() > 0) {
+                            willGarnish = console.promptForYesNo("Would you like to garnish the order? (Y/N)");
+                        }
+                        customerOrderToFulfil.fulfill(getCurrentPlayer().getHand(), willGarnish);
                         break;
                     case REFRESH_PANTRY:
                         refreshPantry();
@@ -327,27 +332,6 @@ public class MagicBakery implements java.io.Serializable {
             pantry.add(drawFromPantryDeck());
         }
     }
-
-    // /**
-    //  * Appends the available options to the StringBuilder.
-    //  * 
-    //  * @return A string representation of the available options.
-    //  */
-    // public String displayOptions() {
-    //     StringBuilder options = new StringBuilder("Choose an action:\n");
-    //     options.append("D - Draw ingredient\n");
-    //     if (!getCurrentPlayer().getHand().isEmpty()) {
-    //         options.append("P - Pass ingredient\n");
-    //     }
-    //     if (!getBakeableLayers().isEmpty()) {
-    //         options.append("B - Bake layer\n");
-    //     }
-    //     if (!getFulfilableCustomers().isEmpty()) {
-    //         options.append("F - Fulfil order\n");
-    //     }
-    //     options.append("R - Refresh pantry\n");
-    //     return options.toString();
-    // }
 
     public Collection<Object> getAvailableActions() {
         ArrayList<Object> availableActions = new ArrayList<>();

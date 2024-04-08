@@ -108,9 +108,9 @@ public class CustomerOrder implements java.io.Serializable {
 
     public String toString() {
         if(garnish.size() > 0) {
-            return String.format("Name: %s, Recipe: %s, Garnish: %s, Level: %d", name, recipe, garnish, level);
+            return String.format("Name: %s, Recipe: %s, Garnish: %s, Level: %d, Status: %s", name, recipe, garnish, level, status);
         }
-        return String.format("Name: %s, Recipe: %s, Level: %d", name, recipe, level);
+        return String.format("Name: %s, Recipe: %s, Level: %d, Status: %s", name, recipe, level, status);
     }
 
     public CustomerOrderStatus getStatus() {
