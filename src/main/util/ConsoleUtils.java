@@ -2,8 +2,8 @@ package util;
 import java.io.Console;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,24 +32,26 @@ public class ConsoleUtils {
         }
 
     public ActionType promptForAction(String prompt, MagicBakery bakery) {
-        System.out.println(prompt);
-        String input;
-        do {
-            input = console.readLine();
-            if (input.equalsIgnoreCase("D")) {
-                return ActionType.DRAW_INGREDIENT;
-            } else if (input.equalsIgnoreCase("P") && !bakery.getCurrentPlayer().getHand().isEmpty()) {
-                return ActionType.PASS_INGREDIENT;
-            } else if (input.equalsIgnoreCase("B") && !bakery.getBakeableLayers().isEmpty()) {
-                return ActionType.BAKE_LAYER;
-            } else if (input.equalsIgnoreCase("F") && !bakery.getFulfilableCustomers().isEmpty()) {
-                return ActionType.FULFIL_ORDER;
-            } else if (input.equalsIgnoreCase("R")) {
-                return ActionType.REFRESH_PANTRY;
-            } else {
-                System.out.println("Invalid input. Please enter a valid action.");
-            }
-        } while (true);
+        //System.out.println(prompt);
+        ActionType result = (ActionType) promptEnumerateCollection(prompt, bakery.getAvailableActions());
+
+        // do {
+        //     input = console.readLine();
+        //     if (input.equalsIgnoreCase("D")) {
+        //         return ActionType.DRAW_INGREDIENT;
+        //     } else if (input.equalsIgnoreCase("P")) {
+        //         return ActionType.PASS_INGREDIENT;
+        //     } else if (input.equalsIgnoreCase("B")) {
+        //         return ActionType.BAKE_LAYER;
+        //     } else if (input.equalsIgnoreCase("F")) {
+        //         return ActionType.FULFIL_ORDER;
+        //     } else if (input.equalsIgnoreCase("R")) {
+        //         return ActionType.REFRESH_PANTRY;
+        //     } else {
+        //         System.out.println("Invalid input. Please enter a valid action.");
+        //     }
+        // } while (true);
+        return result;
     }
 
     public CustomerOrder promptForCustomer(String prompt, Collection<CustomerOrder> customers) {
@@ -124,7 +126,8 @@ public class ConsoleUtils {
     }
 
     private Object promptEnumerateCollection(String prompt, Collection<Object> collection) {
-        System.out.println(prompt);
+        System.out.printf("\n%s\n", prompt);
+        int selection;
         if (collection.isEmpty()) {
             System.out.println("The collection is empty.");
             return null;
@@ -132,13 +135,11 @@ public class ConsoleUtils {
     
         int i = 1;
         for (Object item : collection) {
-            System.out.println(i + ". " + item.toString());
+            System.out.printf("[%d]. %s\n", i, item.toString());
             i++;
         }
     
-        int selection;
         do {
-            System.out.println(prompt);
             try {
                 selection = Integer.parseInt(console.readLine());
             } catch (NumberFormatException e) {
@@ -149,11 +150,9 @@ public class ConsoleUtils {
             if (selection < 1 || selection > collection.size()) {
                 System.out.println("Invalid selection. Please select a number between 1 and " + collection.size() + ".");
             } else {
-                break;
+                return new ArrayList<>(collection).get(selection - 1);
             }
         } while (true);
-    
-        return collection.toArray()[selection - 1];
     }
 
 }

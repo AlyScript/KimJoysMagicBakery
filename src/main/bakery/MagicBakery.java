@@ -3,6 +3,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -70,7 +71,7 @@ public class MagicBakery implements java.io.Serializable {
 
     private Ingredient drawFromPantryDeck() {
         if (pantryDeck.isEmpty()) {
-            return null;
+            restorePantry();
         }
         Ingredient ingredient = pantryDeck.iterator().next();
         pantryDeck.remove(ingredient);
@@ -139,7 +140,9 @@ public class MagicBakery implements java.io.Serializable {
         for(Layer layer : layers) {
             int missingIngredients = 0;
             if(getCurrentPlayer().getHand().containsAll(layer.getRecipe())) {
-                bakeableLayers.add(layer);
+                if(!bakeableLayers.contains(layer)) {
+                    bakeableLayers.add(layer);
+                }
             } else {
                 for(Ingredient ingredient : layer.getRecipe()) {
                     if(!getCurrentPlayer().getHand().contains(ingredient)) {
@@ -148,7 +151,9 @@ public class MagicBakery implements java.io.Serializable {
                 }
             }
             if(getCurrentPlayer().helpfulDuckCount() >= missingIngredients) {
-                bakeableLayers.add(layer);
+                if(!bakeableLayers.contains(layer)) {
+                    bakeableLayers.add(layer);
+                }
             }
         }
         return bakeableLayers;
@@ -217,11 +222,15 @@ public class MagicBakery implements java.io.Serializable {
     }
 
     public void printGameState() {
-        System.out.println("Game state:");
+        System.out.println("-----------------------------");
         System.out.printf("Current player: %s\n", getCurrentPlayer().toString());
+        System.out.printf("%s, your hand contains: %s\n", getCurrentPlayer().toString(), getCurrentPlayer().getHand().toString());
         System.out.printf("Actions remaining: %d\n", getActionsRemaining());
         System.out.printf("Pantry: %s\n", pantry.toString());
+        System.out.printf("Layers available to bake: %s\n", getBakeableLayers().toString());
         System.out.printf("Players: %s\n", players.toString());
+        System.out.printf("%d Customer(s): %s\n", customers.getActiveCustomers().size(), customers.getActiveCustomers().toString());
+        System.out.println("-----------------------------");
     }
 
     public void refreshPantry() {
@@ -260,52 +269,102 @@ public class MagicBakery implements java.io.Serializable {
         System.out.println("\nWelcome to Kim Joy's Magic Bakery!");
 
         while(customers.getActiveCustomers().size() > 0 || customers.getCustomerDeck().size() > 0) {
-            Player currentPlayer = getCurrentPlayer();
-            System.out.printf("\nCurrent player: %s\n", currentPlayer.toString());
-            System.out.printf("\nPantry deck: %s\n", pantry.toString());
-            System.out.println(displayOptions());
+        
+            while(getActionsRemaining() > 0) {
 
-            int choice = Integer.parseInt(console.readLine("Enter your choice: (1-5)", null));
-            switch(choice) {
-                case 1:
-                    String ingredientName = console.readLine("Enter the ingredient name: ", null);
-                    drawFromPantry(ingredientName);
-                    break;
-                case 2:
-                    Player targetPlayer = console.promptForExistingPlayer("Enter player number: ", this);
-                    if (targetPlayer != null && !currentPlayer.getHand().isEmpty()) {
-                        Ingredient ingredientToPass = currentPlayer.getHand().get(0); // or random selection
-                        passCard(ingredientToPass, targetPlayer);
-                        System.out.println("Current player's hand: " + currentPlayer.getHand());
-                    } else if (currentPlayer.getHand().isEmpty()) {
-                        System.out.println("Current player's hand is empty.");
-                    }
-                    break;
-                case 3:
-                    // if(console.promptForAction("Enter the name of the layer you want to bake: ").equals(ActionType.BAKE_LAYER)) {
-                        
-                    // }
-                    // bakeLayer(layer);
-                    break;
-                case 4:
-                    //CustomerOrder customer = console.promptForFulfillableOrder(this);
-                    //fulfillOrder(customer, false);
-                    break;
-                case 5:
-                    refreshPantry();
-                    break;
-                default:
-                    System.out.println("Invalid choice.");
+                Player currentPlayer = getCurrentPlayer();
+                printGameState();
+                ActionType choice = console.promptForAction("Choose an option number from the list below:", this);
+                switch(choice) {
+                    case DRAW_INGREDIENT:
+                        String ingredientName = console.readLine("Enter the ingredient name: ", null);
+                        drawFromPantry(ingredientName);
+                        break;
+                    case PASS_INGREDIENT:
+                        Player targetPlayer = console.promptForExistingPlayer("Enter player number: ", this);
+                        if (targetPlayer != null && !currentPlayer.getHand().isEmpty()) {
+                            Ingredient ingredientToPass = currentPlayer.getHand().get(0); // or random selection
+                            passCard(ingredientToPass, targetPlayer);
+                            System.out.println("Current player's hand: " + currentPlayer.getHand());
+                        } else if (currentPlayer.getHand().isEmpty()) {
+                            System.out.println("Current player's hand is empty.");
+                        }
+                        break;
+                    case BAKE_LAYER:
+                        String layerName = console.readLine("Enter the layer name: ", null);
+                        for(Layer layer : layers) {
+                            if(layer.toString().equalsIgnoreCase(layerName)) {
+                                bakeLayer(layer);
+                                break;
+                            }
+                        }
+                        break;
+                    case FULFIL_ORDER:
+                        //fulfillOrder();
+                        break;
+                    case REFRESH_PANTRY:
+                        refreshPantry();
+                        break;
+                }
+            }
+        
+            if (!endTurn()) {
+                break;
             }
         }
 
     }
 
-    // added this method to display options to the player
-    public String displayOptions() {
-        String result = "";
-        result+=("\nChoose from the options listed below: \n\n1. Draw an ingredient from the pantry \n2. Pass a card to another player \n3. Bake a layer \n4. Fulfill a customer order \n5. Refresh the pantry");
-        return result;
+    /**
+     * Restores the pantry by moving all ingredients from the discard pile back to the pantry.
+     * Shuffles the pantry after restoring.
+     */
+    public void restorePantry() {
+        pantryDeck.addAll(pantryDiscard);
+        pantryDiscard.clear();
+        Collections.shuffle((List) pantryDeck, random);
+        for(int i=0; i<pantryDeck.size(); i++) {
+            pantry.add(drawFromPantryDeck());
+        }
+    }
+
+    // /**
+    //  * Appends the available options to the StringBuilder.
+    //  * 
+    //  * @return A string representation of the available options.
+    //  */
+    // public String displayOptions() {
+    //     StringBuilder options = new StringBuilder("Choose an action:\n");
+    //     options.append("D - Draw ingredient\n");
+    //     if (!getCurrentPlayer().getHand().isEmpty()) {
+    //         options.append("P - Pass ingredient\n");
+    //     }
+    //     if (!getBakeableLayers().isEmpty()) {
+    //         options.append("B - Bake layer\n");
+    //     }
+    //     if (!getFulfilableCustomers().isEmpty()) {
+    //         options.append("F - Fulfil order\n");
+    //     }
+    //     options.append("R - Refresh pantry\n");
+    //     return options.toString();
+    // }
+
+    public Collection<Object> getAvailableActions() {
+        ArrayList<Object> availableActions = new ArrayList<>();
+        if (getActionsRemaining() > 0) {
+            availableActions.add(ActionType.DRAW_INGREDIENT);
+            if (!getCurrentPlayer().getHand().isEmpty()) {
+                availableActions.add(ActionType.PASS_INGREDIENT);
+            }
+            if (!getBakeableLayers().isEmpty()) {
+                availableActions.add(ActionType.BAKE_LAYER);
+            }
+            if (!getFulfilableCustomers().isEmpty()) {
+                availableActions.add(ActionType.FULFIL_ORDER);
+            }
+            availableActions.add(ActionType.REFRESH_PANTRY);
+        }
+        return availableActions;
     }
 
 }

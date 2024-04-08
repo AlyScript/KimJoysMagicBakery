@@ -11,25 +11,25 @@ public class BakeryDriver {
         List<String> playerNames = consoleUtils.promptForNewPlayers("Enter player name: ");
         magicBakery.startGame(playerNames, "io/customers.csv");
 
-        int i = 0;
-        while (i < 20) {
-            Player currentPlayer = magicBakery.getCurrentPlayer();
-            System.out.println("Current player: " + currentPlayer.toString());
+        // int i = 0;
+        // while (i < 20) {
+        //     Player currentPlayer = magicBakery.getCurrentPlayer();
+        //     System.out.println("Current player: " + currentPlayer.toString());
 
-            System.out.println("Enter a player to pass an ingredient to: ");
-            Player targetPlayer = consoleUtils.promptForExistingPlayer("Enter player name: ", magicBakery);
-            if (targetPlayer != null && !currentPlayer.getHand().isEmpty()) {
-                Ingredient ingredientToPass = currentPlayer.getHand().get(0); // or random selection
-                magicBakery.passIngredient(ingredientToPass, targetPlayer);
-                System.out.println("Current player's hand: " + currentPlayer.getHand());
-            } else if (currentPlayer.getHand().isEmpty()) {
-                System.out.println("Current player's hand is empty.");
-            }
+        //     System.out.println("Enter a player to pass an ingredient to: ");
+        //     Player targetPlayer = consoleUtils.promptForExistingPlayer("Enter player name: ", magicBakery);
+        //     if (targetPlayer != null && !currentPlayer.getHand().isEmpty()) {
+        //         Ingredient ingredientToPass = currentPlayer.getHand().get(0); // or random selection
+        //         magicBakery.passCard(ingredientToPass, targetPlayer);
+        //         System.out.println("Current player's hand: " + currentPlayer.getHand());
+        //     } else if (currentPlayer.getHand().isEmpty()) {
+        //         System.out.println("Current player's hand is empty.");
+        //     }
 
-            if (magicBakery.endTurn()) {
-                i++;
-            }
-        }
+        //     if (magicBakery.endTurn()) {
+        //         i++;
+        //     }
+        // }
     }
 
     public static void main(String[] args)  {

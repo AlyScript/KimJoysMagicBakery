@@ -107,7 +107,10 @@ public class CustomerOrder implements java.io.Serializable {
     }
 
     public String toString() {
-        return String.format("%s, %s, %s, %d", name, recipe, garnish, level);
+        if(garnish.size() > 0) {
+            return String.format("Name: %s, Recipe: %s, Garnish: %s, Level: %d", name, recipe, garnish, level);
+        }
+        return String.format("Name: %s, Recipe: %s, Level: %d", name, recipe, level);
     }
 
     public CustomerOrderStatus getStatus() {

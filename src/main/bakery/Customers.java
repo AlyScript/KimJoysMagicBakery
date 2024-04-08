@@ -24,7 +24,13 @@ public class Customers implements java.io.Serializable {
 
     public Customers(String deckFile, Random random, Collection<Layer> layers, int numPlayers) {
         initialiseCustomerDeck(deckFile, layers, numPlayers);
-        activeCustomers = new PriorityQueue<>();
+        activeCustomers = new ArrayList<>();
+        if(numPlayers == 2 || numPlayers == 4) {
+            activeCustomers.add(drawCustomer());
+        } else {
+            activeCustomers.add(drawCustomer());
+            activeCustomers.add(drawCustomer());
+        }
         inactiveCustomers = new ArrayList<>();
         this.random = new Random();
     }
@@ -207,4 +213,5 @@ public class Customers implements java.io.Serializable {
         activeCustomers = activeCustomerDeck;
         return null;
     }
+
 }
