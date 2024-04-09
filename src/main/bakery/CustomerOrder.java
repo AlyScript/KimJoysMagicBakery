@@ -1,6 +1,7 @@
 package bakery;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CustomerOrder implements java.io.Serializable {
@@ -25,11 +26,58 @@ public class CustomerOrder implements java.io.Serializable {
     }
     
     public boolean canFulfill(List<Ingredient> ingredients) {
-        return ingredients.containsAll(recipe);
+        int helpfulDuckCount = Collections.frequency(ingredients, Ingredient.HELPFUL_DUCK);
+        int ingredientCount = 0;
+        if(ingredients.containsAll(recipe)) {
+            return true;
+        } else {
+            for(Ingredient recipeIngredient : recipe) {
+                if(ingredients.contains(recipeIngredient)) {
+                    ingredientCount++;
+                }
+            }
+        }
+        if(ingredientCount + helpfulDuckCount == recipe.size()) {
+            return true;
+        }
+        return false;
+    }
+
+    // get the ingredients used to fulfill the recipe portion of the order
+    // helper method for canGarnish
+    public List<Ingredient> simulateFulfill(List<Ingredient> ingredients) {
+        List<Ingredient> ingredientsCopy = new ArrayList<>(ingredients);
+        int helpfulDuckCount = Collections.frequency(ingredientsCopy, Ingredient.HELPFUL_DUCK);
+    
+        for(Ingredient ingredient : this.recipe) {
+            if(ingredientsCopy.contains(ingredient)) {
+                ingredientsCopy.remove(ingredient);
+            } else if(helpfulDuckCount > 0) {
+                helpfulDuckCount--;
+                ingredientsCopy.remove(Ingredient.HELPFUL_DUCK);
+            }
+        }
+    
+        return ingredientsCopy;
     }
 
     public boolean canGarnish(List<Ingredient> ingredients) {
-        return ingredients.containsAll(garnish);
+        List<Ingredient> remainingIngredients = simulateFulfill(ingredients);
+        List<Ingredient> usedGarnishIngredients = new ArrayList<>();
+        int helpfulDuckCount = Collections.frequency(remainingIngredients, Ingredient.HELPFUL_DUCK);
+    
+        for(Ingredient ingredient : this.garnish) {
+            if(remainingIngredients.contains(ingredient)) {
+                usedGarnishIngredients.add(ingredient);
+                remainingIngredients.remove(ingredient);
+            } else if(helpfulDuckCount > 0) {
+                usedGarnishIngredients.add(Ingredient.HELPFUL_DUCK);
+                helpfulDuckCount--;
+                remainingIngredients.remove(Ingredient.HELPFUL_DUCK);
+            }
+        }
+    
+        return usedGarnishIngredients.size() == this.garnish.size();
     }
 
     public List<Ingredient> fulfill(List<Ingredient> ingredients, boolean garnish) {
@@ -42,7 +90,8 @@ public class CustomerOrder implements java.io.Serializable {
             }
         }
 
-        for(Ingredient ingredient : recipe) {
+        for(int i=0; i<recipe.size(); i++){
+            Ingredient ingredient = recipe.get(i);
             if(ingredients.contains(ingredient)) {
                 usedRecipeIngredients.add(ingredient);
                 recipe.remove(ingredient);
@@ -57,7 +106,8 @@ public class CustomerOrder implements java.io.Serializable {
         }
 
         if(garnish && usedRecipeIngredients.size() == recipe.size()) {
-            for(Ingredient ingredient : this.garnish) {
+            for(int i=0; i<this.garnish.size(); i++) {
+                Ingredient ingredient = this.garnish.get(i);
                 if(ingredients.contains(ingredient)) {
                     usedGarnishIngredients.add(ingredient);
                     this.garnish.remove(ingredient);
@@ -107,10 +157,7 @@ public class CustomerOrder implements java.io.Serializable {
     }
 
     public String toString() {
-        if(garnish.size() > 0) {
-            return String.format("Name: %s, Recipe: %s, Garnish: %s, Level: %d, Status: %s", name, recipe, garnish, level, status);
-        }
-        return String.format("Name: %s, Recipe: %s, Level: %d, Status: %s", name, recipe, level, status);
+        return name;
     }
 
     public CustomerOrderStatus getStatus() {

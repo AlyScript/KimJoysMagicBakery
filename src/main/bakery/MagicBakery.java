@@ -237,7 +237,7 @@ public class MagicBakery implements java.io.Serializable {
         pantryDeck.addAll(pantryDiscard);
         pantryDiscard.clear();
         Collections.shuffle((List) pantryDeck, random);
-        for(int i=0; i<pantryDeck.size(); i++) {
+        for(int i=0; i<5; i++) {
             pantry.add(drawFromPantryDeck());
         }
         actionsUsed++;
@@ -257,9 +257,6 @@ public class MagicBakery implements java.io.Serializable {
         for(int i=0; i<5; i++) {
             pantry.add(drawFromPantryDeck());
         }
-        // this is where i need to draw one or two customers
-        // and add them to the customers list (q asked on discussion board why this isnt in UML)
-        customers.drawCustomer();
         for(Player player : players) {
             for(int i=0; i<3; i++) {
                 player.addToHand(drawFromPantryDeck());
@@ -302,10 +299,11 @@ public class MagicBakery implements java.io.Serializable {
                     case FULFIL_ORDER:
                         boolean willGarnish = false;
                         CustomerOrder customerOrderToFulfil = console.promptForCustomer("Choose a customer to fulfil: ", getFulfilableCustomers());
-                        if(customerOrderToFulfil.getGarnish().size() > 0) {
+                        if((customerOrderToFulfil.getGarnish().size() > 0) && customerOrderToFulfil.canGarnish(getCurrentPlayer().getHand())) {
                             willGarnish = console.promptForYesNo("Would you like to garnish the order? (Y/N)");
                         }
-                        customerOrderToFulfil.fulfill(getCurrentPlayer().getHand(), willGarnish);
+                        List<Ingredient> usedIngredients = customerOrderToFulfil.fulfill(getCurrentPlayer().getHand(), willGarnish);
+                        System.out.printf("\n%s fulfilled the order [%s] with ingredients: %s\n", currentPlayer.toString(), customerOrderToFulfil.toString(), usedIngredients.toString());
                         break;
                     case REFRESH_PANTRY:
                         refreshPantry();
