@@ -2,7 +2,7 @@ package bakery;
 
 public class Ingredient implements java.io.Serializable, java.lang.Comparable<Ingredient> {
     private String name;
-    public static final Ingredient HELPFUL_DUCK = new Ingredient("HELPFUL_DUCK");
+    public static final Ingredient HELPFUL_DUCK = new Ingredient("Helpful duck 𓅭");
     private static final long serialVersionUID = 11085168;
 
     public Ingredient (String name) {

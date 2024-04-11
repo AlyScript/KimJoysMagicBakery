@@ -1,6 +1,9 @@
 package bakery;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Player implements java.io.Serializable{
     private List<Ingredient> hand;
@@ -53,6 +56,7 @@ public class Player implements java.io.Serializable{
      *   @return Returns the name of the player
      */
     public List<Ingredient> getHand() {
+        hand.sort(Comparator.comparing(Ingredient::toString, String.CASE_INSENSITIVE_ORDER));
         return hand;
     }
 
@@ -88,15 +92,46 @@ public class Player implements java.io.Serializable{
      *   @return Players hand as comma separated string
      */
     public String getHandStr() {
-        String result = "";
-        for(int i=0; i<hand.size()-1; i++) {
-            result += hand.get(i).toString() + ", ";
+        if (hand.isEmpty()) {
+            return "";
         }
-        result += hand.get(hand.size()-1).toString();
-        return result;
+    
+        // Create a copy of the hand list and sort it
+        List<Ingredient> sortedHand = getHand();
+        //sortedHand.sort(Comparator.comparing(Ingredient::toString));
+    
+        StringBuilder result = new StringBuilder();
+        String lastIngredient = sortedHand.get(0).toString();
+        int count = 0;
+    
+        for (Ingredient ingredient : sortedHand) {
+            String currentIngredient = ingredient.toString();
+            if (!currentIngredient.equals(lastIngredient)) {
+                result.append(capitaliseFirstLetter(lastIngredient));
+                if (count > 1) {
+                    result.append(" (x").append(count).append(")");
+                }
+                result.append(", ");
+                lastIngredient = currentIngredient;
+                count = 0;
+            }
+            count++;
+        }
+    
+        result.append(capitaliseFirstLetter(lastIngredient));
+        if (count > 1) {
+            result.append(" (x").append(count).append(")");
+        }
+    
+        return result.toString();
     }
 
     public String toString() {
         return name;
     }
+
+    String capitaliseFirstLetter(String str) {
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
 }
