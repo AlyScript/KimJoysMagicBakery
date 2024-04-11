@@ -1,5 +1,6 @@
 package bakery;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -22,7 +23,13 @@ public class Layer extends Ingredient{
      * @return true if the player has all the ingredients to bake the layer
      */
     public boolean canBake(List<Ingredient> ingredients) {
-        return ingredients.containsAll(recipe);
+        List<Ingredient> ingredientsCopy = new ArrayList<>(ingredients);
+        for (Ingredient ingredient : recipe) {
+            if (!ingredientsCopy.remove(ingredient) && !ingredientsCopy.remove(Ingredient.HELPFUL_DUCK)) {
+                return false;
+            }
+        }
+        return true;
     }
     
     /** Getter for recipe
@@ -51,6 +58,7 @@ public class Layer extends Ingredient{
      * @return Returns a hash code for the layer
      */
     public int hashCode() {
+        recipe.sort(null);
         return recipe.hashCode();
     }
 
