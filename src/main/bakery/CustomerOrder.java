@@ -2,7 +2,11 @@ package bakery;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class CustomerOrder implements java.io.Serializable {
 
@@ -26,21 +30,29 @@ public class CustomerOrder implements java.io.Serializable {
     }
     
     public boolean canFulfill(List<Ingredient> ingredients) {
-        int helpfulDuckCount = Collections.frequency(ingredients, Ingredient.HELPFUL_DUCK);
-        int ingredientCount = 0;
-        if(ingredients.containsAll(recipe)) {
-            return true;
-        } else {
-            for(Ingredient recipeIngredient : recipe) {
-                if(ingredients.contains(recipeIngredient)) {
-                    ingredientCount++;
+        Map<Ingredient, Integer> ingredientCountMap = new HashMap<>();
+        for (Ingredient ingredient : ingredients) {
+            ingredientCountMap.put(ingredient, ingredientCountMap.getOrDefault(ingredient, 0) + 1);
+        }
+    
+        for (Ingredient recipeIngredient : recipe) {
+            if (!ingredientCountMap.containsKey(recipeIngredient) || ingredientCountMap.get(recipeIngredient) == 0) {
+                if (recipeIngredient instanceof Layer || !ingredientCountMap.containsKey(Ingredient.HELPFUL_DUCK) || ingredientCountMap.get(Ingredient.HELPFUL_DUCK) == 0) {
+                    return false;
+                } else {
+                    ingredientCountMap.put(Ingredient.HELPFUL_DUCK, ingredientCountMap.get(Ingredient.HELPFUL_DUCK) - 1);
+                }
+            } else {
+                int count = ingredientCountMap.get(recipeIngredient) - 1;
+                if (count == 0) {
+                    ingredientCountMap.remove(recipeIngredient);
+                } else {
+                    ingredientCountMap.put(recipeIngredient, count);
                 }
             }
         }
-        if(ingredientCount + helpfulDuckCount == recipe.size()) {
-            return true;
-        }
-        return false;
+    
+        return true;
     }
 
     // get the ingredients used to fulfill the recipe portion of the order
@@ -62,68 +74,66 @@ public class CustomerOrder implements java.io.Serializable {
     }
 
     public boolean canGarnish(List<Ingredient> ingredients) {
-        List<Ingredient> remainingIngredients = simulateFulfill(ingredients);
-        List<Ingredient> usedGarnishIngredients = new ArrayList<>();
-        int helpfulDuckCount = Collections.frequency(remainingIngredients, Ingredient.HELPFUL_DUCK);
+        Map<Ingredient, Integer> ingredientCountMap = new HashMap<>();
+        for (Ingredient ingredient : ingredients) {
+            ingredientCountMap.put(ingredient, ingredientCountMap.getOrDefault(ingredient, 0) + 1);
+        }
     
-        for(Ingredient ingredient : this.garnish) {
-            if(remainingIngredients.contains(ingredient)) {
-                usedGarnishIngredients.add(ingredient);
-                remainingIngredients.remove(ingredient);
-            } else if(helpfulDuckCount > 0) {
-                usedGarnishIngredients.add(Ingredient.HELPFUL_DUCK);
-                helpfulDuckCount--;
-                remainingIngredients.remove(Ingredient.HELPFUL_DUCK);
+        for (Ingredient garnishIngredient : garnish) {
+            if (!ingredientCountMap.containsKey(garnishIngredient) || ingredientCountMap.get(garnishIngredient) == 0) {
+                if (garnishIngredient instanceof Layer) {
+                    return false;
+                } else if (!ingredientCountMap.containsKey(Ingredient.HELPFUL_DUCK) || ingredientCountMap.get(Ingredient.HELPFUL_DUCK) == 0) {
+                    return false;
+                } else {
+                    ingredientCountMap.put(Ingredient.HELPFUL_DUCK, ingredientCountMap.get(Ingredient.HELPFUL_DUCK) - 1);
+                }
+            } else {
+                int count = ingredientCountMap.get(garnishIngredient) - 1;
+                if (count == 0) {
+                    ingredientCountMap.remove(garnishIngredient);
+                } else {
+                    ingredientCountMap.put(garnishIngredient, count);
+                }
             }
         }
     
-        return usedGarnishIngredients.size() == this.garnish.size();
+        return true;
     }
 
     public List<Ingredient> fulfill(List<Ingredient> ingredients, boolean garnish) {
-        List<Ingredient> usedRecipeIngredients = new ArrayList<>();
-        List<Ingredient> usedGarnishIngredients = new ArrayList<>();
-        int helpfulDuckCount = 0;
-        for(Ingredient ingredient : ingredients) {
-            if(ingredient.toString().equalsIgnoreCase("HELPFUL_DUCK")) {
-                helpfulDuckCount++;
-            }
-        }
+        List<Ingredient> availableIngredients = new ArrayList<>(ingredients);
+        int helpfulDuckCount = Collections.frequency(availableIngredients, Ingredient.HELPFUL_DUCK);
+        List<Ingredient> usedIngredients = new ArrayList<>();
 
-        for(int i=0; i<recipe.size(); i++){
-            Ingredient ingredient = recipe.get(i);
-            if(ingredients.contains(ingredient)) {
-                usedRecipeIngredients.add(ingredient);
-                recipe.remove(ingredient);
+        for(Ingredient ingredient : this.recipe) {
+            if(availableIngredients.contains(ingredient)) {
+                availableIngredients.remove(ingredient);
+                usedIngredients.add(ingredient);
             } else if(helpfulDuckCount > 0) {
-                usedRecipeIngredients.add(Ingredient.HELPFUL_DUCK);
                 helpfulDuckCount--;
-                recipe.remove(Ingredient.HELPFUL_DUCK);
+                availableIngredients.remove(Ingredient.HELPFUL_DUCK);
+                usedIngredients.add(Ingredient.HELPFUL_DUCK);
             }
         }
-        if(usedRecipeIngredients.size() == recipe.size()) {
-            status = CustomerOrderStatus.FULFILLED;
-        }
 
-        if(garnish && usedRecipeIngredients.size() == recipe.size()) {
-            for(int i=0; i<this.garnish.size(); i++) {
-                Ingredient ingredient = this.garnish.get(i);
-                if(ingredients.contains(ingredient)) {
-                    usedGarnishIngredients.add(ingredient);
-                    this.garnish.remove(ingredient);
+        setStatus(CustomerOrderStatus.FULFILLED);
+
+        if(garnish && canGarnish(availableIngredients) && this.garnish.size() > 0){
+            for(Ingredient ingredient : this.garnish) {
+                if(availableIngredients.contains(ingredient)) {
+                    availableIngredients.remove(ingredient);
+                    usedIngredients.add(ingredient);
                 } else if(helpfulDuckCount > 0) {
-                    usedGarnishIngredients.add(Ingredient.HELPFUL_DUCK);
                     helpfulDuckCount--;
-                    this.garnish.remove(Ingredient.HELPFUL_DUCK);
+                    availableIngredients.remove(Ingredient.HELPFUL_DUCK);
+                    usedIngredients.add(Ingredient.HELPFUL_DUCK);
                 }
             }
-            if(usedGarnishIngredients.size() == this.garnish.size()) {
-                status = CustomerOrderStatus.GARNISHED;
-            }
-            usedRecipeIngredients.addAll(usedGarnishIngredients);
+            setStatus(CustomerOrderStatus.GARNISHED);
         }
 
-        return (List) usedRecipeIngredients;
+        return usedIngredients;
     }
 
     public List<Ingredient> getGarnish(){
