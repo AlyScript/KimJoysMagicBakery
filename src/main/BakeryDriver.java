@@ -10,6 +10,7 @@ public class BakeryDriver {
         MagicBakery magicBakery = new MagicBakery(0, "io/ingredients.csv", "io/layers.csv");
         List<String> playerNames = consoleUtils.promptForNewPlayers("Enter player name: ");
         magicBakery.startGame(playerNames, "io/customers.csv");
+        System.out.println(magicBakery.getCustomers().getCustomerDeck());
 
         // int i = 0;
         // while (i < 20) {

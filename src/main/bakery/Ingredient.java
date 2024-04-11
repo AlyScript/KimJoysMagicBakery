@@ -25,7 +25,7 @@ public class Ingredient implements java.io.Serializable, java.lang.Comparable<In
     }
 
     public String toString() {
-        return name;
+        return name.strip();
     }
 
     @Override

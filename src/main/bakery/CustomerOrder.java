@@ -132,10 +132,14 @@ public class CustomerOrder implements java.io.Serializable {
 
     public String getGarnishDescription() {
         String result = "";
-        for(int i=0; i<recipe.size()-1; i++) {
-            result += recipe.get(i).toString() + ", ";
+        if(garnish.size() > 1) {
+            for(int i=0; i<garnish.size()-1; i++) {
+                result += garnish.get(i).toString() + ", ";
+            }
         }
-        result += recipe.get(recipe.size()-1).toString();
+        if(garnish.size() > 0) {
+            result += garnish.get(garnish.size()-1).toString();
+        }
         return result;
     }
 

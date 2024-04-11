@@ -115,6 +115,7 @@ public class MagicBakery implements java.io.Serializable {
     
         if (currentPlayerIndex == 0) {
             System.out.println("New round");
+            customers.timePasses();
         }
         actionsUsed = 0;
         return true;
@@ -268,6 +269,13 @@ public class MagicBakery implements java.io.Serializable {
         while(customers.getActiveCustomers().size() > 0 || customers.getCustomerDeck().size() > 0) {
         
             while(getActionsRemaining() > 0) {
+
+                /* Debugging
+                 * 
+                 *   System.out.println(customers.getActiveCustomers()); 
+                */
+                System.out.printf("\n%d ;; %s\n%d ;; %s\n", customers.getCustomerDeck().size(), customers.getCustomerDeck().toString(), customers.getActiveCustomers().size(), customers.getActiveCustomers().toString());
+
 
                 Player currentPlayer = getCurrentPlayer();
                 printGameState();

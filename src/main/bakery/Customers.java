@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Stack;
 
@@ -25,37 +24,43 @@ public class Customers implements java.io.Serializable {
     public Customers(String deckFile, Random random, Collection<Layer> layers, int numPlayers) {
         initialiseCustomerDeck(deckFile, layers, numPlayers);
         activeCustomers = new ArrayList<>();
-        if(numPlayers == 2 || numPlayers == 4) {
-            activeCustomers.add(drawCustomer());
-        } else {
-            activeCustomers.add(drawCustomer());
-            activeCustomers.add(drawCustomer());
-        }
+        // should the below be done in startGame()?
+        // if(numPlayers == 2 || numPlayers == 4) {
+        //     activeCustomers.add(drawCustomer());
+        // } else {
+        //     activeCustomers.add(drawCustomer());
+        //     activeCustomers.add(drawCustomer());
+        // }
         inactiveCustomers = new ArrayList<>();
-        this.random = new Random();
+        this.random = random;
     }
 
     public CustomerOrder addCustomerOrder() {
         inactiveCustomers.add(timePasses());
-        LinkedList<CustomerOrder> activeCustomerDeck = new LinkedList<>(activeCustomers);
+        //LinkedList<CustomerOrder> activeCustomerDeck = new LinkedList<>(activeCustomers);
         if(!customerDeck.isEmpty()) {
-            activeCustomerDeck.addFirst(drawCustomer());
-            activeCustomers = activeCustomerDeck;
+            activeCustomers.add(drawCustomer());
         }
         return timePasses();
     }
 
     public boolean customerWillLeaveSoon() {
-        for(CustomerOrder customer : activeCustomers) {
-            if(customer.getStatus().equals(CustomerOrderStatus.IMPATIENT)) {
-                return true;
+        if(!isEmpty()) {
+            for(CustomerOrder customerOrder : activeCustomers) {
+                if(customerOrder != null && customerOrder.getStatus().equals(CustomerOrderStatus.WAITING)) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
     public CustomerOrder drawCustomer() {
-        return ((Stack<CustomerOrder>) customerDeck).pop();
+        if(!customerDeck.isEmpty()) {
+            CustomerOrder customerOrder = ((Stack<CustomerOrder>) customerDeck).pop();
+            return customerOrder;
+        }
+        return null;
     }
 
     public Collection<CustomerOrder> getActiveCustomers() {
@@ -63,6 +68,9 @@ public class Customers implements java.io.Serializable {
     }
 
     public Collection<CustomerOrder> getCustomerDeck() {
+        if(isEmpty()) {
+            return null;
+        }
         return customerDeck;
     }
 
@@ -143,23 +151,23 @@ public class Customers implements java.io.Serializable {
                 customerDeck.add(level3CustomerOrders.get(5));
                 break;
         }
-        Collections.shuffle((List) customerDeck);
+        Collections.shuffle((Stack) customerDeck);
     }
 
     public boolean isEmpty() {
         for(CustomerOrder customerOrder : activeCustomers) {
             if(customerOrder != null) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public CustomerOrder peek() {
-        if(customerDeck.isEmpty()) {
+        if(isEmpty()) {
             return null;
         }
-        return ((Stack<CustomerOrder>) customerDeck).peek();
+        return ((ArrayList<CustomerOrder>) activeCustomers).get(2);
     }
 
     public void remove(CustomerOrder customer) {
@@ -203,13 +211,34 @@ public class Customers implements java.io.Serializable {
     }
         } else {
             // Get the top card and remove it from the deck
-            CustomerOrder newCustomer = ((Stack<CustomerOrder>) customerDeck).pop();
-            activeCustomerDeck.addFirst(newCustomer);
+        CustomerOrder newCustomer = ((Stack<CustomerOrder>) customerDeck).pop();
+
+        // Start from the leftmost position and shift every card to the right until you find an empty space
+        for (int i = 0; i < activeCustomerDeck.size(); i++) {
+            // If the current space is empty, break the loop
+            if (activeCustomerDeck.get(i) == null) {
+                break;
+            }
+
+            // If the current space is not empty and there is a space to the right, move the card to the right
+            if (i < activeCustomerDeck.size() - 1) {
+                activeCustomerDeck.set(i + 1, activeCustomerDeck.get(i));
+            }
+        }
+
+            // Place the new card in the leftmost space
+            activeCustomerDeck.set(0, newCustomer);
         }
         
+        // If the rightmost Customer is more than 3 spaces away from the Customer stack, discard that card
+        while (activeCustomerDeck.size() > 4) {
+            activeCustomerDeck.removeLast();
+        }
+
         if(!activeCustomerDeck.get(3).equals(null)) {
             return activeCustomerDeck.get(3);
         }
+
         activeCustomers = activeCustomerDeck;
         return null;
     }
