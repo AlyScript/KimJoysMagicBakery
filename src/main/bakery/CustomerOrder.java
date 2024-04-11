@@ -55,24 +55,6 @@ public class CustomerOrder implements java.io.Serializable {
         return true;
     }
 
-    // get the ingredients used to fulfill the recipe portion of the order
-    // helper method for canGarnish
-    public List<Ingredient> simulateFulfill(List<Ingredient> ingredients) {
-        List<Ingredient> ingredientsCopy = new ArrayList<>(ingredients);
-        int helpfulDuckCount = Collections.frequency(ingredientsCopy, Ingredient.HELPFUL_DUCK);
-    
-        for(Ingredient ingredient : this.recipe) {
-            if(ingredientsCopy.contains(ingredient)) {
-                ingredientsCopy.remove(ingredient);
-            } else if(helpfulDuckCount > 0) {
-                helpfulDuckCount--;
-                ingredientsCopy.remove(Ingredient.HELPFUL_DUCK);
-            }
-        }
-    
-        return ingredientsCopy;
-    }
-
     public boolean canGarnish(List<Ingredient> ingredients) {
         Map<Ingredient, Integer> ingredientCountMap = new HashMap<>();
         for (Ingredient ingredient : ingredients) {

@@ -25,12 +25,12 @@ public class Customers implements java.io.Serializable {
         initialiseCustomerDeck(deckFile, layers, numPlayers);
         activeCustomers = new ArrayList<>();
         // should the below be done in startGame()?
-        // if(numPlayers == 2 || numPlayers == 4) {
-        //     activeCustomers.add(drawCustomer());
-        // } else {
-        //     activeCustomers.add(drawCustomer());
-        //     activeCustomers.add(drawCustomer());
-        // }
+        if(numPlayers == 2 || numPlayers == 4) {
+            activeCustomers.add(drawCustomer());
+        } else {
+            activeCustomers.add(drawCustomer());
+            activeCustomers.add(drawCustomer());
+        }
         inactiveCustomers = new ArrayList<>();
         this.random = random;
     }

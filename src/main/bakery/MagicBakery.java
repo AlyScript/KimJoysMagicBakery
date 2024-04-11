@@ -1,8 +1,10 @@
 package bakery;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -269,14 +271,6 @@ public class MagicBakery implements java.io.Serializable {
         while(customers.getActiveCustomers().size() > 0 || customers.getCustomerDeck().size() > 0) {
         
             while(getActionsRemaining() > 0) {
-
-                /* Debugging
-                 * 
-                 *   System.out.println(customers.getActiveCustomers()); 
-                */
-                System.out.printf("\n%d ;; %s\n%d ;; %s\n", customers.getCustomerDeck().size(), customers.getCustomerDeck().toString(), customers.getActiveCustomers().size(), customers.getActiveCustomers().toString());
-
-
                 Player currentPlayer = getCurrentPlayer();
                 printGameState();
                 ActionType choice = console.promptForAction("Choose an option number from the list below:", this);
