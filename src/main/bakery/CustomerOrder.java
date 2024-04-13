@@ -2,9 +2,7 @@ package bakery;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +20,9 @@ public class CustomerOrder implements java.io.Serializable {
     private static final long serialVersionUID = 11085168;
 
     public CustomerOrder(String name, List<Ingredient> recipe, List<Ingredient> garnish, int level) {
+        if(recipe == null || recipe.isEmpty())  {
+            throw new WrongIngredientsException(name + " must have at least one ingredient in the recipe");
+        }
         this.name = name;
         this.recipe = recipe;
         this.garnish = garnish;
@@ -84,6 +85,9 @@ public class CustomerOrder implements java.io.Serializable {
     }
 
     public List<Ingredient> fulfill(List<Ingredient> ingredients, boolean garnish) {
+        if(!canFulfill(ingredients)) {
+            throw new WrongIngredientsException("Cannot fulfill order");
+        }
         List<Ingredient> availableIngredients = new ArrayList<>(ingredients);
         int helpfulDuckCount = Collections.frequency(availableIngredients, Ingredient.HELPFUL_DUCK);
         List<Ingredient> usedIngredients = new ArrayList<>();

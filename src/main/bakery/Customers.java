@@ -23,9 +23,13 @@ public class Customers implements java.io.Serializable {
 
 
     public Customers(String deckFile, Random random, Collection<Layer> layers, int numPlayers) {
+        this.random = random;
         initialiseCustomerDeck(deckFile, layers, numPlayers);
         activeCustomers = new ArrayList<>();
-        activeCustomers.add(null);
+        for(int i = 0; i < 3; i++) {
+            activeCustomers.add(null);
+        }
+        //activeCustomers.add(null);
         // should the below be done in startGame()?
         // if(numPlayers % 2 == 0) {
         //     activeCustomers.add(drawCustomer());
@@ -34,7 +38,6 @@ public class Customers implements java.io.Serializable {
         //     activeCustomers.add(drawCustomer());
         // }
         inactiveCustomers = new ArrayList<>();
-        this.random = random;
     }
 
     public CustomerOrder addCustomerOrder() {
@@ -90,7 +93,7 @@ public class Customers implements java.io.Serializable {
     public Collection<CustomerOrder> getFulfilable(List<Ingredient> hand) {
         Collection<CustomerOrder> result = new ArrayList<>();
         for (CustomerOrder customerOrder : activeCustomers) {
-            if (hand.containsAll(customerOrder.getRecipe())) {
+            if(customerOrder != null && customerOrder.canFulfill(hand)) {
                 result.add(customerOrder);
             }
         }
@@ -116,6 +119,7 @@ public class Customers implements java.io.Serializable {
         customerDeck = new Stack<>();
         List<CustomerOrder> tempCustomerDeck = new ArrayList<>();
         tempCustomerDeck.addAll(CardUtils.readCustomerFile(deckFile, layers));
+        Collections.shuffle(tempCustomerDeck, random);
         
         ArrayList<CustomerOrder> level1CustomerOrders = new ArrayList<>();
         ArrayList<CustomerOrder> level2CustomerOrders = new ArrayList<>();
@@ -131,9 +135,9 @@ public class Customers implements java.io.Serializable {
             }
         }
 
-        Collections.shuffle(level1CustomerOrders);
-        Collections.shuffle(level2CustomerOrders);
-        Collections.shuffle(level3CustomerOrders);
+        // Collections.shuffle(level1CustomerOrders, random);
+        // Collections.shuffle(level2CustomerOrders, random);
+        // Collections.shuffle(level3CustomerOrders, random);
 
         switch(numPlayers) {
             case 2:
@@ -145,7 +149,16 @@ public class Customers implements java.io.Serializable {
                 customerDeck.add(level2CustomerOrders.get(1));
                 customerDeck.add(level3CustomerOrders.get(0));
                 break;
-            case (3 | 4):
+            case (3):
+                customerDeck.add(level1CustomerOrders.get(0));
+                customerDeck.add(level2CustomerOrders.get(0));
+                customerDeck.add(level2CustomerOrders.get(1));
+                customerDeck.add(level3CustomerOrders.get(0));
+                customerDeck.add(level3CustomerOrders.get(1));
+                customerDeck.add(level3CustomerOrders.get(2));
+                customerDeck.add(level3CustomerOrders.get(3));
+                break;
+            case 4:
                 customerDeck.add(level1CustomerOrders.get(0));
                 customerDeck.add(level2CustomerOrders.get(0));
                 customerDeck.add(level2CustomerOrders.get(1));
@@ -164,7 +177,7 @@ public class Customers implements java.io.Serializable {
                 customerDeck.add(level3CustomerOrders.get(5));
                 break;
         }
-        Collections.shuffle((Stack) customerDeck);
+        Collections.shuffle((Stack<CustomerOrder>) customerDeck, random);
     }
 
     public boolean isEmpty() {

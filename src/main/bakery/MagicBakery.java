@@ -1,11 +1,8 @@
 package bakery;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -21,8 +18,6 @@ public class MagicBakery implements java.io.Serializable {
     private Collection<Ingredient> pantryDiscard;
     private Random random;
     private static final long serialVersionUID = 11085168;
-
-    ConsoleUtils console;
 
     private int currentPlayerIndex;
     private int actionsUsed;
@@ -40,13 +35,14 @@ public class MagicBakery implements java.io.Serializable {
         pantryDiscard = new Stack<>();
         random = new Random(seed);
 
-        console = new ConsoleUtils();
-
         currentPlayerIndex = 0;
         actionsUsed = 0;
     }
 
     public void bakeLayer(Layer layer) {
+        if(getActionsRemaining() <= 0) {
+            throw new TooManyActionsException();
+        }
         if(getBakeableLayers().contains(layer)) {
             Player currentPlayer = getCurrentPlayer();
             List<Ingredient> recipe = new ArrayList<>(layer.getRecipe());
@@ -178,7 +174,7 @@ public class MagicBakery implements java.io.Serializable {
     public Collection<CustomerOrder> getFulfilableCustomers() {
         Collection<CustomerOrder> fulfilableCustomers = new ArrayList<>();
         for(CustomerOrder customerOrder : customers.getActiveCustomers()) {
-            if(customerOrder.canFulfill(getCurrentPlayer().getHand())) {
+            if(customerOrder != null && customerOrder.canFulfill(getCurrentPlayer().getHand())) {
                 fulfilableCustomers.add(customerOrder);
             }
         }
@@ -232,7 +228,7 @@ public class MagicBakery implements java.io.Serializable {
         System.out.printf("Pantry: %s\n", pantry.toString());
         System.out.printf("Layers available to bake: %s\n", getBakeableLayers().toString());
         System.out.printf("Players: %s\n", players.toString());
-        System.out.printf("%d Customer(s): %s\n", customers.getActiveCustomers().size(), customers.getActiveCustomers().toString());
+        System.out.printf("%d Customer(s): %s\n", customers.size(), customers.getActiveCustomers().toString());
         System.out.println("-----------------------------");
     }
 
@@ -255,11 +251,22 @@ public class MagicBakery implements java.io.Serializable {
         for (String name : playerNames) {
             players.add(new Player(name));
         }
+        if(players.size() < 2 || players.size() > 5) {
+            throw new IllegalArgumentException("Number of players must be between 2 and 5.");
+        }
         customers = new Customers(customerDeckFile, random, layers, players.size());
-        Collections.shuffle((List) pantryDeck, random);
+        Collections.shuffle((List<Ingredient>) pantryDeck, random);
         for(int i=0; i<5; i++) {
             pantry.add(drawFromPantryDeck());
         }
+        if(players.size() == 2 || players.size() == 4) {
+            customers.addCustomerOrder();
+        } else {
+            customers.addCustomerOrder();
+            customers.addCustomerOrder();
+        }
+        System.out.println(customers.getActiveCustomers().toString());
+
         for(Player player : players) {
             for(int i=0; i<3; i++) {
                 player.addToHand(drawFromPantryDeck());
@@ -268,19 +275,19 @@ public class MagicBakery implements java.io.Serializable {
 
         System.out.println("\nWelcome to Kim Joy's Magic Bakery!");
 
-        while(customers.getActiveCustomers().size() > 0 || customers.getCustomerDeck().size() > 0) {
+        while(customers.size() > 0 || customers.getCustomerDeck().size() > 0) {
         
             while(getActionsRemaining() > 0) {
                 Player currentPlayer = getCurrentPlayer();
                 printGameState();
-                ActionType choice = console.promptForAction("Choose an option number from the list below:", this);
+                ActionType choice = new ConsoleUtils().promptForAction("Choose an option number from the list below:", this);
                 switch(choice) {
                     case DRAW_INGREDIENT:
-                        String ingredientName = console.readLine("Enter the ingredient name: ", null);
+                        String ingredientName = new ConsoleUtils().readLine("Enter the ingredient name: ", null);
                         drawFromPantry(ingredientName);
                         break;
                     case PASS_INGREDIENT:
-                        Player targetPlayer = console.promptForExistingPlayer("Enter player number: ", this);
+                        Player targetPlayer = new ConsoleUtils().promptForExistingPlayer("Enter player number: ", this);
                         if (targetPlayer != null && !currentPlayer.getHand().isEmpty()) {
                             Ingredient ingredientToPass = currentPlayer.getHand().get(0); // or random selection
                             passCard(ingredientToPass, targetPlayer);
@@ -290,7 +297,7 @@ public class MagicBakery implements java.io.Serializable {
                         }
                         break;
                     case BAKE_LAYER:
-                        String layerName = console.readLine("Enter the layer name: ", null);
+                        String layerName = new ConsoleUtils().readLine("Enter the layer name: ", null);
                         for(Layer layer : layers) {
                             if(layer.toString().equalsIgnoreCase(layerName)) {
                                 bakeLayer(layer);
@@ -300,9 +307,9 @@ public class MagicBakery implements java.io.Serializable {
                         break;
                     case FULFIL_ORDER:
                         boolean willGarnish = false;
-                        CustomerOrder customerOrderToFulfil = console.promptForCustomer("Choose a customer to fulfil: ", getFulfilableCustomers());
+                        CustomerOrder customerOrderToFulfil = new ConsoleUtils().promptForCustomer("Choose a customer to fulfil: ", getFulfilableCustomers());
                         if((customerOrderToFulfil.getGarnish().size() > 0) && customerOrderToFulfil.canGarnish(getCurrentPlayer().getHand())) {
-                            willGarnish = console.promptForYesNo("Would you like to garnish the order? (Y/N)");
+                            willGarnish = new ConsoleUtils().promptForYesNo("Would you like to garnish the order? (Y/N)");
                         }
                         List<Ingredient> usedIngredients = customerOrderToFulfil.fulfill(getCurrentPlayer().getHand(), willGarnish);
                         System.out.printf("\n%s fulfilled the order [%s] with ingredients: %s\n", currentPlayer.toString(), customerOrderToFulfil.toString(), usedIngredients.toString());
