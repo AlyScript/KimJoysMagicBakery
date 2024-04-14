@@ -1,5 +1,6 @@
 package bakery;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,7 +23,7 @@ public class Customers implements java.io.Serializable {
     private static final long serialVersionUID = 11085168;
 
 
-    public Customers(String deckFile, Random random, Collection<Layer> layers, int numPlayers) {
+    public Customers(String deckFile, Random random, Collection<Layer> layers, int numPlayers) throws FileNotFoundException {
         this.random = random;
         initialiseCustomerDeck(deckFile, layers, numPlayers);
         activeCustomers = new ArrayList<>();
@@ -110,7 +111,7 @@ public class Customers implements java.io.Serializable {
         return result;
     }
 
-    private void initialiseCustomerDeck(String deckFile, Collection<Layer> layers, int numPlayers) {
+    private void initialiseCustomerDeck(String deckFile, Collection<Layer> layers, int numPlayers) throws FileNotFoundException {
         /*
          * 2 players: x4 Level 1, x2 Level 2, x1 Level 3
          * 3&4 players: x1 Level 1, x2 Level 2, x4 Level 3
@@ -118,7 +119,11 @@ public class Customers implements java.io.Serializable {
          */
         customerDeck = new Stack<>();
         List<CustomerOrder> tempCustomerDeck = new ArrayList<>();
-        tempCustomerDeck.addAll(CardUtils.readCustomerFile(deckFile, layers));
+        try {
+            tempCustomerDeck.addAll(CardUtils.readCustomerFile(deckFile, layers));
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException();
+        }
         Collections.shuffle(tempCustomerDeck, random);
         
         ArrayList<CustomerOrder> level1CustomerOrders = new ArrayList<>();

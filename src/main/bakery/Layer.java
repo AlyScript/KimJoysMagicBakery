@@ -15,7 +15,13 @@ public class Layer extends Ingredient{
     */
     public Layer(String name, List<Ingredient> recipe) {
         super(name);    
+        if(recipe == null) {
+            throw new WrongIngredientsException("Recipe cannot be null");
+        }
         this.recipe = recipe;
+        if(recipe.isEmpty()) {
+            throw new WrongIngredientsException("Recipe cannot be empty");
+        }
     }
 
      /** Check if the player has all the ingredients to bake the layer

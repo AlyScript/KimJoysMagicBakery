@@ -2,6 +2,7 @@ package util;
 import bakery.*;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ public class CardUtils {
         
     }
     
-    public static List<CustomerOrder> readCustomerFile(String path, Collection<Layer> layers) {
+    public static List<CustomerOrder> readCustomerFile(String path, Collection<Layer> layers) throws FileNotFoundException {
         ArrayList<CustomerOrder> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -26,12 +27,12 @@ public class CardUtils {
             }
             reader.close();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new FileNotFoundException();
         }
         return result;
     }
 
-    public static List<Ingredient> readIngredientFile(String path) {
+    public static List<Ingredient> readIngredientFile(String path) throws FileNotFoundException {
         ArrayList<Ingredient> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -45,12 +46,12 @@ public class CardUtils {
             }
             reader.close();
         } catch (Exception e) {
-            // TODO: handle exception
+            throw new FileNotFoundException();
         }
         return result;
     }
 
-    public static List<Layer> readLayerFile(String path) {
+    public static List<Layer> readLayerFile (String path) throws FileNotFoundException {
         ArrayList<Layer> result = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -64,7 +65,7 @@ public class CardUtils {
             }
             reader.close();
         } catch (Exception e) {
-            // TODO: handle exception
+            throw new FileNotFoundException();
         }
         return result;
     }

@@ -46,7 +46,9 @@ public class Player implements java.io.Serializable{
      *   @param Ingredient to be removed from the player's hand
      */
     public void removeFromHand(Ingredient ingredient) {
-        hand.remove(ingredient);
+        if(!hand.remove(ingredient)) {
+            throw new WrongIngredientsException(name + " does not have " + ingredient + " in their hand");
+        }
     }
 
     /** Getter for name

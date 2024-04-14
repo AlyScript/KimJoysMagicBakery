@@ -2,7 +2,6 @@ package util;
 import java.io.Console;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -125,7 +124,10 @@ public class ConsoleUtils {
         return input.equalsIgnoreCase("Y");
     }
 
-    private Object promptEnumerateCollection(String prompt, Collection<Object> collection) {
+    private Object promptEnumerateCollection(String prompt, Collection<Object> collection) throws IllegalArgumentException {
+        if(collection == null || collection.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
         System.out.printf("\n%s\n", prompt);
         int selection;
         if (collection.isEmpty()) {

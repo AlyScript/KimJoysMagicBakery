@@ -1,11 +1,13 @@
 import bakery.*;
 import util.ConsoleUtils;
+
+import java.io.FileNotFoundException;
 import java.util.List;
 
 public class BakeryDriver {
     private ConsoleUtils consoleUtils = new ConsoleUtils();
 
-    public BakeryDriver() {
+    public BakeryDriver() throws FileNotFoundException {
         consoleUtils = new ConsoleUtils();
         MagicBakery magicBakery = new MagicBakery(0, "io/ingredients.csv", "io/layers.csv");
         List<String> playerNames = consoleUtils.promptForNewPlayers("Enter player name: ");
@@ -34,7 +36,7 @@ public class BakeryDriver {
     }
 
     public static void main(String[] args)  {
-        new BakeryDriver();
+        //new BakeryDriver();
     }
 
 }
