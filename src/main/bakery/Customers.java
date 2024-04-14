@@ -44,6 +44,9 @@ public class Customers implements java.io.Serializable {
         CustomerOrder c = timePasses();
         if(!customerDeck.isEmpty()) {
             ((LinkedList<CustomerOrder>) activeCustomers).add(0, drawCustomer());
+            if(c != null && size() == 3) {
+                customerWillLeaveSoon();
+            }
         } else {
             throw new EmptyStackException();
         }
@@ -65,10 +68,7 @@ public class Customers implements java.io.Serializable {
                 } else if(activeCustomers.toArray()[2] != null && activeCustomers.toArray()[1] != null && activeCustomers.toArray()[0] != null) {
                     ((CustomerOrder) activeCustomers.toArray()[2]).setStatus(CustomerOrderStatus.IMPATIENT);
                     return true;
-                } //else if(activeCustomers.toArray()[2] != null && activeCustomers.toArray()[1] == null && activeCustomers.toArray()[0] == null){
-                    //((CustomerOrder) activeCustomers.toArray()[2]).setStatus(CustomerOrderStatus.IMPATIENT);
-                    //return true;
-                //}
+                }
             }
         }
         return false;
@@ -222,10 +222,10 @@ public class Customers implements java.io.Serializable {
     public CustomerOrder timePasses() {
         LinkedList<CustomerOrder> activeCustomerDeck = new LinkedList<>(activeCustomers);
         CustomerOrder leavingCustomer = null;
+        customerWillLeaveSoon();
         
         // Check if the customerDeck is empty
         if (customerDeck.isEmpty()) {
-            // Move the leftmost non-null CustomerOrder one space to the right
             if (activeCustomerDeck.size() >= 3) {
                 if(activeCustomerDeck.get(0) != null && activeCustomerDeck.get(1) != null && activeCustomerDeck.get(2) != null) {
                     activeCustomerDeck.add(0, null);

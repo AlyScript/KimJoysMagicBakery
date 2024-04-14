@@ -7,6 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Stack;
+
+import bakery.CustomerOrder.CustomerOrderStatus;
 import util.*;
 
 public class MagicBakery implements java.io.Serializable {
@@ -154,6 +156,9 @@ public class MagicBakery implements java.io.Serializable {
             drawnIngredients.add(ingredient2);
         }
         customers.remove(customer);
+        if(!customers.customerWillLeaveSoon()) {
+            customers.peek().setStatus(CustomerOrderStatus.WAITING);
+        }
         return drawnIngredients;
     }
 
