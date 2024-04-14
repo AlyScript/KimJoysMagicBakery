@@ -1,9 +1,7 @@
 package bakery;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Player implements java.io.Serializable{
     private List<Ingredient> hand;
@@ -67,7 +65,7 @@ public class Player implements java.io.Serializable{
     public int helpfulDuckCount() {
         int count = 0;
         for(Ingredient ingredient : hand) {
-            if(ingredient.toString().equalsIgnoreCase("HELPFUL_DUCK")) {
+            if(ingredient.equals(Ingredient.HELPFUL_DUCK)) {
                 count++;
             }
         }
@@ -78,13 +76,8 @@ public class Player implements java.io.Serializable{
      *   @param none
      *   @return none
      */
-    public void removeHelpfulDuckFromHand() {
-        for(int i=0; i<hand.size(); i++) {
-            if(hand.get(i).toString().equalsIgnoreCase("HELPFUL_DUCK")) {
-                hand.remove(i);
-                return;
-            }
-        }
+    public Ingredient removeHelpfulDuckFromHand() {
+        return hand.remove(hand.indexOf(Ingredient.HELPFUL_DUCK));
     }
 
     /** Return player's hand as a string
