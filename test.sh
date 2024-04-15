@@ -11,3 +11,4 @@ javac -cp .:junit-platform-console-standalone.jar --source-path ./src/main/ ./sr
 
 # Run the tests
 java -jar junit-platform-console-standalone.jar --class-path ./bin/ --scan-class-path --fail-if-no-tests
+

@@ -2,6 +2,7 @@ package test.functional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -97,6 +98,21 @@ public class MagicBakeryTest {
 		}
 		return new CustomerOrder(name, recipeList, garnishList, 1);
 	}
+
+	public Collection<CustomerOrder> getFulfilableCustomersWrapper(MagicBakery bakery) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+		Method mtd = FunctionalHelper.getMethod(bakery, "getFulfillableCustomers");
+        if (mtd == null) {
+		    // there is no getFulfillableCustomers in MagicBakery, let's try getFulfilable
+		    mtd = FunctionalHelper.getMethod(bakery, "getFulfilableCustomers");
+        }
+
+        if (mtd == null) return null;
+
+        // This is a complicated way for saying: bakery.getFulfillableCustomers();
+        @SuppressWarnings("unchecked")
+        Collection<CustomerOrder> fulfillable = (Collection<CustomerOrder>)mtd.invoke(bakery);
+        return fulfillable;
+    }
 
 	@BeforeAll
 	public static void setUp() throws IOException, FileNotFoundException {
@@ -194,6 +210,7 @@ public class MagicBakeryTest {
 		Collection<Ingredient> pantryDiscard = (Collection<Ingredient>)FunctionalHelper.getFieldValue(bakery, "pantryDiscard");
 
 		int layersOrig = layers.size();
+		System.out.println(layers.toString());
 
 		String[] ingredients = {"flour", "eggs", "sugar", "oil"};
 		List<Ingredient> hand = setupCurrentHand(bakery, ingredients);
@@ -201,6 +218,9 @@ public class MagicBakeryTest {
 
 		Layer layer = (Layer)stringToIngredient(layers, "sponge");
 		bakery.bakeLayer(layer);
+
+		System.out.println(layers.toString());
+
 		assertEquals(layersOrig - 1, layers.size());
 
 		assertEquals(2, hand.size());
@@ -622,6 +642,10 @@ public class MagicBakeryTest {
 		assertEquals(3, customers.size());
 
 		// Three more rounds to push out all remaining customers
+		for(CustomerOrder customer : customers.getActiveCustomers()) {
+			System.out.println(customer.toString());
+		}
+
 		for (int i = 0; i < players.length; i++) {
 			bakery.endTurn();
 		}
@@ -673,6 +697,9 @@ public class MagicBakeryTest {
 		List<Ingredient> drawn = bakery.fulfillOrder(customer, false);
 		assertTrue(drawn.isEmpty());
 		assertEquals(2, hand.size());
+		// for(CustomerOrder cust : customers.getActiveCustomers()) {
+		// 	System.out.println(cust.toString());
+		// }
 		assertEquals(2, customers.size());
 		assertEquals(1, inactiveCustomers.size());
 		assertTrue(inactiveCustomers.contains(customer));
@@ -791,6 +818,8 @@ public class MagicBakeryTest {
 		@SuppressWarnings("unchecked")
 		Collection<Layer> layers = (Collection<Layer>)FunctionalHelper.getFieldValue(bakery, "layers");
 
+		System.out.printf("--------------\nLayersOrig: %s\n--------------", layers.toString());
+
 		@SuppressWarnings("unchecked")
 		Collection<Ingredient> pantryDiscard = (Collection<Ingredient>)FunctionalHelper.getFieldValue(bakery, "pantryDiscard");
 
@@ -809,6 +838,7 @@ public class MagicBakeryTest {
 		List<Ingredient> hand = setupCurrentHand(bakery, ingredients);
 		
 		List<Ingredient> drawn = bakery.fulfillOrder(customer, true);
+		System.out.printf("--------------\nLayers remaining: %s\n--------------", layers.toString());
 		assertEquals(2, drawn.size());
 		assertEquals(2, hand.size());
 		assertEquals(hand, drawn);
@@ -909,6 +939,17 @@ public class MagicBakeryTest {
 
 		setupActiveCustomers(bakery, customCustomers);
 
+		// BUGFIX: add one more order in the deck to make sure we trigger the right behaviour
+		CustomerOrder customer4 = createCustomerOrder(layers, "yet one more recipe", recipe1, garnish1);
+
+		@SuppressWarnings("unchecked")
+		Collection<CustomerOrder> deck = (Collection<CustomerOrder>)FunctionalHelper.getFieldValue(customers, "customerDeck");
+		deck.add(customer4);
+
+		// for(CustomerOrder cust : customers.getActiveCustomers()) {
+		// 	System.out.println(cust.toString());
+		// }
+
 		// Oldest Customer should be impatient since the list of active customers is full
 		assertEquals(CustomerOrderStatus.IMPATIENT, customers.peek().getStatus());
 
@@ -931,8 +972,54 @@ public class MagicBakeryTest {
 		int actionsTaken = bakery.getActionsPermitted() - bakery.getActionsRemaining();
 		assertEquals(1, actionsTaken);
 
+		System.out.println(deck.size());
+
+		for(CustomerOrder cust : customers.getActiveCustomers()) {
+			if(cust != null)
+			System.out.println(cust.toString());
+			else System.out.println("null");
+		}
+
 		// Oldest Customer should not be impatient now
 		assertEquals(CustomerOrderStatus.WAITING, customers.peek().getStatus());
+
+		// ------------------------------------------------------------
+		// Well, this should be an extra test, but let's keep it simple
+		// Same case, but the deck is empty, so the front customer
+		// should not go to waiting
+		// ------------------------------------------------------------
+
+		customer1 = createCustomerOrder(layers, "some recipe", recipe1, garnish1);
+		customer2 = createCustomerOrder(layers, "some other recipe", recipe1, garnish1);
+		customer3 = createCustomerOrder(layers, "yet another recipe", recipe1, garnish1);
+
+		customCustomers = new ArrayList<>();
+		customCustomers.add(customer1);
+		customCustomers.add(customer2);
+		customCustomers.add(customer3);
+
+		setupActiveCustomers(bakery, customCustomers);
+
+		// Oldest Customer should be impatient since the list of active customers is full
+		assertEquals(CustomerOrderStatus.IMPATIENT, customers.peek().getStatus());
+
+		hand = setupCurrentHand(bakery, ingredients);
+
+		inactiveBefore = inactiveCustomers.size();
+
+		drawn = bakery.fulfillOrder(customer1, false);
+		assertTrue(drawn.isEmpty());
+		assertEquals(2, hand.size());
+		assertEquals(2, customers.size());
+		assertEquals(inactiveBefore + 1, inactiveCustomers.size());
+		assertTrue(inactiveCustomers.contains(customer1));
+		assertEquals(layersOrig, layers.size());
+		actionsTaken = bakery.getActionsPermitted() - bakery.getActionsRemaining();
+		assertEquals(2, actionsTaken);
+
+		// Oldest Customer should still be impatient, because the customersDeck is empty
+		assertEquals(CustomerOrderStatus.IMPATIENT, customers.peek().getStatus());
+
 
 	}
 
@@ -1127,7 +1214,7 @@ public class MagicBakeryTest {
 	}
 
 	@Test
-	public void testGetFulfillableCustomers() throws NoSuchFieldException, IllegalAccessException, IOException, FileNotFoundException, InvocationTargetException {
+	public void testGetFulfillableCustomers() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, FileNotFoundException, InvocationTargetException {
 		MagicBakery bakery = bakeryFactory();
 		bakery.startGame(playerNames, "./io/customers.csv");
 
@@ -1156,15 +1243,16 @@ public class MagicBakeryTest {
 
 		String[] ingredients = {"flour", "sugar", "eggs", "butter", "fruit", "chocolate"};
 		setupCurrentHand(bakery, ingredients);
-		
-		Collection<CustomerOrder> fulfillable = bakery.getFulfilableCustomers();
+
+		Collection<CustomerOrder> fulfillable = getFulfilableCustomersWrapper(bakery);
+		assertNotNull(fulfillable);
 		assertEquals(2, fulfillable.size());
 		assertTrue(fulfillable.contains(customer1));
 		assertTrue(fulfillable.contains(customer2));
 	}
 
 	@Test
-	public void testGetFulfillableCustomers__None() throws NoSuchFieldException, IllegalAccessException, IOException, FileNotFoundException, InvocationTargetException {
+	public void testGetFulfillableCustomers__None() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, FileNotFoundException, InvocationTargetException {
 		MagicBakery bakery = bakeryFactory();
 		bakery.startGame(playerNames, "./io/customers.csv");
 
@@ -1194,12 +1282,13 @@ public class MagicBakeryTest {
 		String[] ingredients = {"flour", "sugar", "eggs", "butter", "fruit", "chocolate"};
 		setupCurrentHand(bakery, ingredients);
 		
-		Collection<CustomerOrder> fulfillable = bakery.getFulfilableCustomers();
+		Collection<CustomerOrder> fulfillable = getFulfilableCustomersWrapper(bakery);
+		assertNotNull(fulfillable);
 		assertEquals(0, fulfillable.size());
 	}
 
 	@Test
-	public void testGetFulfillableCustomers__EmptyCustomers() throws NoSuchFieldException, IllegalAccessException, IOException, FileNotFoundException, InvocationTargetException {
+	public void testGetFulfillableCustomers__EmptyCustomers() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, FileNotFoundException, InvocationTargetException {
 		MagicBakery bakery = bakeryFactory();
 		bakery.startGame(playerNames, "./io/customers.csv");
 
@@ -1210,12 +1299,13 @@ public class MagicBakeryTest {
 		String[] ingredients = {"flour", "sugar", "eggs", "butter", "fruit", "chocolate"};
 		setupCurrentHand(bakery, ingredients);
 		
-		Collection<CustomerOrder> fulfillable = bakery.getFulfilableCustomers();
+		Collection<CustomerOrder> fulfillable = getFulfilableCustomersWrapper(bakery);
+		assertNotNull(fulfillable);
 		assertEquals(0, fulfillable.size());
 	}
 
 	@Test
-	public void testGetFulfillableCustomers__EmptyHand() throws NoSuchFieldException, IllegalAccessException, IOException, FileNotFoundException, InvocationTargetException {
+	public void testGetFulfillableCustomers__EmptyHand() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, FileNotFoundException, InvocationTargetException {
 		MagicBakery bakery = bakeryFactory();
 		bakery.startGame(playerNames, "./io/customers.csv");
 
@@ -1245,7 +1335,8 @@ public class MagicBakeryTest {
 		String[] ingredients = {};
 		setupCurrentHand(bakery, ingredients);
 		
-		Collection<CustomerOrder> fulfillable = bakery.getFulfilableCustomers();
+		Collection<CustomerOrder> fulfillable = getFulfilableCustomersWrapper(bakery);
+		assertNotNull(fulfillable);
 		assertEquals(0, fulfillable.size());
 	}
 
@@ -1650,6 +1741,8 @@ public class MagicBakeryTest {
 			Gone to Greggs instead: 2
 			""";
 
+		bakery.printCustomerServiceRecord();
+
 		//assertEquals(expected, output.toString());
 		String txt = output.toString().toLowerCase();
 		assertTrue((txt.contains("1") || txt.contains("one")));
@@ -1739,6 +1832,8 @@ public class MagicBakeryTest {
 		System.setOut(new PrintStream(output));
 		bakery.printGameState();
 		System.setOut(stdout);
+
+		bakery.printGameState();
 
 		//assertEquals(expected, output.toString());
 
@@ -1944,6 +2039,8 @@ public class MagicBakeryTest {
 		System.setOut(new PrintStream(output));
 		bakery.printGameState();
 		System.setOut(stdout);
+
+		bakery.printGameState();
 
 		//assertEquals(expected, output.toString());
 		
@@ -2538,7 +2635,8 @@ public class MagicBakeryTest {
 		File output = File.createTempFile("serial", ".bin");
 		bakery.saveState(output);
 
-		MagicBakery bakery2 = MagicBakery.loadState(output);
+
+		MagicBakery bakery2 = assertDoesNotThrow(() -> MagicBakery.loadState(output));
 
 		assertEquals(bakery.getCurrentPlayer().toString(), bakery2.getCurrentPlayer().toString());
 		//assertEquals(bakery.getCustomers().getCustomers(), bakery2.getCustomers().getCustomers());

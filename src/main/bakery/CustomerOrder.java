@@ -6,8 +6,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a customer's order within a bakery system, detailing the items requested, their status, and other relevant attributes.
+ * This class manages the lifecycle of an order from its creation to fulfillment, including potential garnishing and customer wait management.
+ * It supports operations to check the availability of required ingredients, fulfill the order, and update its status accordingly.
+ *
+ * Usage involves creating an instance with specific ingredients and requirements, after which the order can be processed based on the available stock and customer needs.
+ *
+ * @author Adam Aly
+ * @version 1.1
+ * @since 2023
+ * @see Ingredient
+ * @see CustomerOrderStatus
+ */
 public class CustomerOrder implements java.io.Serializable {
 
+    /**
+     * Enumerates the possible statuses of a CustomerOrder within the bakery system.
+     * Each status represents a different stage in the order processing lifecycle.
+     *
+     * - WAITING: The initial status of an order when it is first created.
+     * - FULFILLED: Indicates that all required ingredients for the order have been successfully gathered.
+     * - GARNISHED: Shows that the order has been not only fulfilled but also garnished as per the order requirements.
+     * - IMPATIENT: Used to mark orders where the customer is waiting beyond a certain expected time.
+     * - GIVEN_UP: Assigned to orders that are abandoned or cannot be completed as requested.
+     */
     public enum CustomerOrderStatus {
         WAITING, FULFILLED, GARNISHED, IMPATIENT, GIVEN_UP
     }
@@ -19,6 +42,15 @@ public class CustomerOrder implements java.io.Serializable {
     private List<Ingredient> recipe = new ArrayList<>();
     private static final long serialVersionUID = 11085168;
 
+    /**
+     * Constructs a new CustomerOrder with specified details about the order.
+     * Initializes the order with a name, recipe, garnish, and level, and sets the initial status to WAITING.
+     *
+     * @param name The name of the customer or the order identifier.
+     * @param recipe A list of ingredients required to prepare the order.
+     * @param garnish A list of ingredients used as garnish.
+     * @param level The priority level of the order.
+     */
     public CustomerOrder(String name, List<Ingredient> recipe, List<Ingredient> garnish, int level) {
         if(recipe == null || recipe.isEmpty())  {
             throw new WrongIngredientsException(name + " must have at least one ingredient in the recipe");
@@ -30,6 +62,12 @@ public class CustomerOrder implements java.io.Serializable {
         this.status = CustomerOrderStatus.WAITING;
     }
     
+    /**
+     * Determines if the order can be fulfilled based on the available ingredients.
+     *
+     * @param ingredients A list of available ingredients.
+     * @return true if the order can be fulfilled, false otherwise.
+     */
     public boolean canFulfill(List<Ingredient> ingredients) {
         Map<Ingredient, Integer> ingredientCountMap = new HashMap<>();
         for (Ingredient ingredient : ingredients) {
@@ -56,6 +94,11 @@ public class CustomerOrder implements java.io.Serializable {
         return true;
     }
 
+    /**
+     * Determines if the order can be garnished based on the available ingredients.
+     * @param ingredients A list of available ingredients.
+     * @return true if the order can be garnished, false otherwise.
+     */
     public boolean canGarnish(List<Ingredient> ingredients) {
         Map<Ingredient, Integer> ingredientCountMap = new HashMap<>();
         for (Ingredient ingredient : ingredients) {
@@ -84,6 +127,17 @@ public class CustomerOrder implements java.io.Serializable {
         return true;
     }
 
+    /**
+     * Attempts to fulfill this order using the specified ingredients and optionally garnishes the order if required and possible.
+     * Verifies the availability of required ingredients against the order's requirements before proceeding. If fulfillment is
+     * achievable, the order status is updated to FULFILLED. If the garnish flag is true and conditions allow, it garnishes the order,
+     * updating the status to GARNISHED.
+     *
+     * @param ingredients A list of {@link Ingredient} objects available to fulfill and optionally garnish the order. Must not be null.
+     * @param garnish A boolean indicating whether the order should also be garnished after being fulfilled.
+     * @return A list of {@link Ingredient} objects representing the ingredients used to fulfill and, if applicable, garnish the order.
+     * @throws WrongIngredientsException if the order cannot be fulfilled with the provided ingredients.
+     */
     public List<Ingredient> fulfill(List<Ingredient> ingredients, boolean garnish) {
         if(!canFulfill(ingredients)) {
             throw new WrongIngredientsException("Cannot fulfill order");
@@ -122,10 +176,20 @@ public class CustomerOrder implements java.io.Serializable {
         return usedIngredients;
     }
 
+    /**
+     * Returns the garnish ingredients associated with this order.
+     *
+     * @return A list of Ingredient objects used as garnish.
+     */
     public List<Ingredient> getGarnish(){
         return garnish;
     }
 
+    /**
+     * Gets the garnish description in a formatted string.
+     *
+     * @return A string describing the garnish ingredients.
+     */
     public String getGarnishDescription() {
         String result = "";
         if(garnish.size() > 1) {
@@ -139,14 +203,29 @@ public class CustomerOrder implements java.io.Serializable {
         return result;
     }
 
+    /**
+     * Retrieves the level of urgency or priority of the order.
+     *
+     * @return An integer representing the level.
+     */
     public int getLevel() {
         return level;
     }
 
+    /**
+     * Returns the recipe ingredients of the order.
+     *
+     * @return A list of Ingredient objects used for the recipe.
+     */
     public List<Ingredient> getRecipe() {
         return recipe;
     }
 
+    /**
+     * Gets the recipe description in a formatted string.
+     *
+     * @return A string describing the recipe ingredients.
+     */
     public String getRecipeDescription() {
         String result = "";
         for(int i=0; i<recipe.size()-1; i++) {
@@ -156,18 +235,36 @@ public class CustomerOrder implements java.io.Serializable {
         return result;
     }
 
+    /**
+     * Returns a string representation of the customer order, typically the name of the customer or the order.
+     *
+     * @return A string representing the customer order.
+     */
     public String toString() {
         return name;
     }
 
+    /**
+     * Retrieves the current status of the customer order.
+     *
+     * @return The current status of the order as an instance of CustomerOrderStatus.
+     */
     public CustomerOrderStatus getStatus() {
         return status;
     }
 
+    /**
+     * Sets the current status of the customer order.
+     *
+     * @param status The new status to set for this order.
+     */
     public void setStatus(CustomerOrderStatus status) {
         this.status = status;
     }
 
+    /**
+     * Abandons the order, setting its status to GIVEN_UP.
+     */
     public void abandon() {
         this.status = CustomerOrderStatus.GIVEN_UP;
     }

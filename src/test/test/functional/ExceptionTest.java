@@ -893,15 +893,9 @@ public class ExceptionTest {
 	}
 
 	@Test
-	public void testMagicBakeryStartGame__MissingCustomerFile() throws NoSuchFieldException, IllegalAccessException {
+	public void testMagicBakeryStartGame__MissingCustomerFile() throws NoSuchFieldException, IllegalAccessException, IOException {
 
-		MagicBakery bakery;
-		try {
-			bakery = new MagicBakery(0, "./io/ingredients.csv", "./io/layers.csv");
-		} catch (IOException e) {
-			fail();
-			return;
-		}
+		MagicBakery bakery = new MagicBakery(0, "./io/ingredients.csv", "./io/layers.csv");
 		List<String> playerNames = new ArrayList<String>();
 		playerNames.add("A");
 		playerNames.add("V");
@@ -909,20 +903,13 @@ public class ExceptionTest {
 	}
 
 	@Test
-	public void testMagicBakerySaveState__InvalidPath() throws NoSuchFieldException, IllegalAccessException {
-		MagicBakery bakery;
-
+	public void testMagicBakerySaveState__InvalidPath() throws NoSuchFieldException, IllegalAccessException, IOException {
 		List<String> playerNames = new ArrayList<String>();
 		playerNames.add("A");
 		playerNames.add("V");
 
-		try {
-			bakery = new MagicBakery(0, "./io/ingredients.csv", "./io/layers.csv");
-			bakery.startGame(playerNames, "./io/customers.csv");
-		} catch (IOException e) {
-			fail();
-			return;
-		}
+		MagicBakery bakery = new MagicBakery(0, "./io/ingredients.csv", "./io/layers.csv");
+		bakery.startGame(playerNames, "./io/customers.csv");
 		assertThrows(FileNotFoundException.class, () -> {bakery.saveState(new File("/tmp/foo/bar/pop/push/peek/close/open/adfplgkhyrteqambc.qqq"));});
 	}
 
@@ -933,18 +920,19 @@ public class ExceptionTest {
 	}
 
 	@Test
-	public void testMagicBakeryLoadState__InvalidData() throws NoSuchFieldException, IllegalAccessException {
-		File file;
-		try{
-			file = File.createTempFile("bakery", ".bin");
-			ObjectOutputStream objectStream = new ObjectOutputStream(new FileOutputStream(file));
-        	objectStream.writeObject(new String("1234567"));
-        	objectStream.close();
-		} catch (IOException e){
-			fail();
-			return;
-		}
-		assertThrows(Exception.class, () -> {MagicBakery.loadState(file);});
+	public void testMagicBakeryLoadState__InvalidData() throws NoSuchFieldException, IllegalAccessException, IOException {
+		File file = File.createTempFile("bakery", ".bin");
+		ObjectOutputStream objectStream = new ObjectOutputStream(new FileOutputStream(file));
+        objectStream.writeObject(new String("1234567"));
+        objectStream.close();
+		assertThrows(ClassCastException.class, () -> {MagicBakery.loadState(file);});
+
+		File file2 = File.createTempFile("bakery", ".bin");
+		FileOutputStream fileStream = new FileOutputStream(file2);
+		byte[] txt = {'1', '2', '3', '4', '5', '6', '7'};
+        fileStream.write(txt);
+        fileStream.close();
+		assertThrows(java.io.ObjectStreamException.class, () -> {MagicBakery.loadState(file2);});
 	}
 	
 	@Test

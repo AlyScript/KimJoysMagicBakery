@@ -35,8 +35,8 @@ public class BakeryDriver {
         // }
     }
 
-    public static void main(String[] args)  {
-        //new BakeryDriver();
+    public static void main(String[] args) throws FileNotFoundException {
+        new BakeryDriver();
     }
 
 }

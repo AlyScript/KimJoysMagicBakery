@@ -9,12 +9,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Collection;
 
+/**
+ * Provides static utility methods for reading and interpreting files into usable objects within a bakery management system.
+ * This class processes files containing data about ingredients, layers, and customer orders, transforming raw text into structured objects.
+ * It is designed to facilitate the initial data setup for the application by loading pre-defined configurations.
+ *
+ * Note: This class is not intended to be instantiated as it serves purely functional static methods.
+ *
+ * @author Adam Aly
+ * @version 1.0
+ * @since 1.0
+ */
 public class CardUtils {
 
     private CardUtils() {
         
     }
     
+    /**
+     * Reads a file containing customer orders and returns a list of CustomerOrder objects.
+     * Each line in the file represents a customer order, and should not start with "LEVEL" to be processed.
+     *
+     * @param path the file path where the customer orders are stored
+     * @param layers a collection of layers that might be referenced by the customer orders
+     * @return a list of CustomerOrder objects parsed from the file
+     * @throws FileNotFoundException if the specified file could not be found
+     */
     public static List<CustomerOrder> readCustomerFile(String path, Collection<Layer> layers) throws FileNotFoundException {
         ArrayList<CustomerOrder> result = new ArrayList<>();
         try {
@@ -32,6 +52,14 @@ public class CardUtils {
         return result;
     }
 
+    /**
+     * Reads a file containing ingredients and returns a list of Ingredient objects.
+     * Each line in the file represents an ingredient, and should not start with "NAME".
+     *
+     * @param path the file path of the ingredient data file
+     * @return a list of Ingredient objects parsed from the file
+     * @throws FileNotFoundException if the specified file could not be found
+     */
     public static List<Ingredient> readIngredientFile(String path) throws FileNotFoundException {
         ArrayList<Ingredient> result = new ArrayList<>();
         try {
@@ -51,6 +79,14 @@ public class CardUtils {
         return result;
     }
 
+    /**
+     * Reads a file containing layers and returns a list of Layer objects.
+     * Each line in the file represents a layer, and should follow a specific format to be parsed correctly.
+     *
+     * @param path the file path of the layer data file
+     * @return a list of Layer objects parsed from the file
+     * @throws FileNotFoundException if the specified file could not be found
+     */
     public static List<Layer> readLayerFile (String path) throws FileNotFoundException {
         ArrayList<Layer> result = new ArrayList<>();
         try {

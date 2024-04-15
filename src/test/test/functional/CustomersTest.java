@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -93,7 +94,7 @@ public class CustomersTest {
         }
         order5 = new CustomerOrder("fondant fancies", ingredients, new ArrayList<Ingredient>(), 3);
 	}
-
+    
     Customers getDeterministicCustomers() throws FileNotFoundException, IOException, NoSuchFieldException, IllegalAccessException {
         Customers customers = new Customers("./io/customers.csv", new Random(12345), layers, 4);
 
@@ -129,6 +130,22 @@ public class CustomersTest {
         return counts;
     }
 
+
+    public Collection<CustomerOrder> getFulfilableWrapper(Customers customer, List<Ingredient> hand) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+		Method mtd = FunctionalHelper.getMethod(customer, "getFulfillable", List.class);
+		if (mtd == null) {
+		    // there is no getFulfillable in Customers, let's try getFulfilable
+		    mtd = FunctionalHelper.getMethod(customer, "getFulfilable", List.class);
+        }
+
+        if (mtd == null) return null;
+
+        // This is a complicated way for saying: customer.getFulfillable(hand);
+		@SuppressWarnings("unchecked")
+		Collection<CustomerOrder> fulfillable = (Collection<CustomerOrder>)mtd.invoke(customer, hand);
+        return fulfillable;
+    }
+
     // --- Constructor ---
 
     @Test
@@ -152,6 +169,10 @@ public class CustomersTest {
 		assertEquals(1, lvlCounts.get(3));
 
         // Check the CustomerDeck has been shuffled correctly
+
+        for(CustomerOrder order: customerDeck) {
+            System.out.println(order.toString());
+        }
 
         CustomerOrder[] deckArray = customerDeck.toArray(new CustomerOrder[0]);
         assertEquals("shortbread biscuits", deckArray[0].toString());
@@ -210,6 +231,10 @@ public class CustomersTest {
 		Collection<CustomerOrder> customerDeck = (Collection<CustomerOrder>)FunctionalHelper.getFieldValue(customers, "customerDeck");
 
         List<Integer> lvlCounts = countLevels(customerDeck);
+
+        for(CustomerOrder order: customerDeck) {
+            System.out.println(order.toString());
+        }
 
 		assertEquals(1, lvlCounts.get(1));
 		assertEquals(2, lvlCounts.get(2));
@@ -447,12 +472,16 @@ public class CustomersTest {
         // ADD!
         assertNull(customers.addCustomerOrder());
 
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
+
         // State after addCustomerOrder() should be: order1 -> null -> null
         assertEquals(1, customers.size());
         assertEquals(4, customerDeck.size());
         assertFalse(customerDeck.contains(order1));
         assertEquals(0, inactiveCustomers.size());
-
         assertFalse(customers.customerWillLeaveSoon());
         assertFalse(customers.isEmpty());
         assertNull(customers.peek()); 
@@ -483,10 +512,21 @@ public class CustomersTest {
         assertFalse(customers.isEmpty());
         assertNull(customers.peek()); 
 
+        // for(CustomerOrder order: customers.getActiveCustomers()) {
+        //     if(order == null) System.out.println("null");
+        //     else System.out.println(order.toString());
+        // }
+
         // ADD!
         assertNull(customers.addCustomerOrder());
 
         // State after addCustomerOrder() should be: order2 -> order1 -> null
+
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
+
         assertEquals(2, customers.size());
         assertEquals(3, customerDeck.size());
         assertFalse(customerDeck.contains(order2));
@@ -521,6 +561,12 @@ public class CustomersTest {
 
         assertFalse(customers.customerWillLeaveSoon());
         assertFalse(customers.isEmpty());
+
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
+
         assertNull(customers.peek()); 
 
         // ADD!
@@ -531,6 +577,11 @@ public class CustomersTest {
         assertEquals(2, customerDeck.size());
         assertFalse(customerDeck.contains(order3));
         assertEquals(0, inactiveCustomers.size());
+
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
 
         assertTrue(customers.customerWillLeaveSoon());
         assertFalse(customers.isEmpty());
@@ -565,6 +616,12 @@ public class CustomersTest {
         assertEquals(order1, customers.peek()); 
 
         // ADD!
+
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
+
         assertEquals(order1, customers.addCustomerOrder());
 
         // State after addCustomerOrder() should be: order4 -> order3 -> order2
@@ -640,6 +697,11 @@ public class CustomersTest {
         customers.addCustomerOrder();
         customers.addCustomerOrder();
 
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
+
         // Initial State Sanity Checks: If one of these checks fails, there is a problem with various state accessing methods. Fix them first!
         // Alternatively, there is a problem with adding the first five orders. Check the previous tests.
         assertEquals(3, customers.size());
@@ -651,14 +713,30 @@ public class CustomersTest {
         assertFalse(customers.isEmpty());
         assertEquals(order3, customers.peek()); 
 
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
+
         // ADD!
         assertThrows(EmptyStackException.class, () -> {customers.addCustomerOrder();});
+
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
 
         // State after addCustomerOrder() should be: null -> order5 -> order4
         assertEquals(2, customers.size());
         assertEquals(0, customerDeck.size());
         assertEquals(3, inactiveCustomers.size());
         assertTrue(inactiveCustomers.contains(order3));
+
+        System.out.println("---------------");
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
 
         assertTrue(customers.customerWillLeaveSoon());
         assertFalse(customers.isEmpty());
@@ -697,6 +775,11 @@ public class CustomersTest {
 
         // ADD!
         assertThrows(EmptyStackException.class, () -> {customers.addCustomerOrder();});
+
+        for(CustomerOrder order: customers.getActiveCustomers()) {
+            if(order == null) System.out.println("null");
+            else System.out.println(order.toString());
+        }
 
         // State after addCustomerOrder() should be: null -> null -> order5
         assertEquals(1, customers.size());
@@ -786,6 +869,12 @@ public class CustomersTest {
         assertFalse(customers.isEmpty());
         assertEquals(order1, customers.peek());
 
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
+
         // ADD!
         assertEquals(order1, customers.addCustomerOrder());
 
@@ -837,16 +926,46 @@ public class CustomersTest {
         assertFalse(customers.isEmpty());
         assertNull(customers.peek());
 
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
+
         // ADD!
         assertNull(customers.addCustomerOrder());
 
+        // for(CustomerOrder c : customers.getActiveCustomers()) {
+        //     if(c!= null)
+        //     System.out.println(c.toString());
+        //     else System.out.println("null");
+        // }
+
         // Active customers should be order4 -> order3 -> order2
+
+        System.out.println("------------------");
+
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
+
+        //System.out.println("\n'''''"+customers.getActiveCustomers().toArray()[3].toString()+"\n'''''");
+
         assertEquals(3, customers.size());
         assertEquals(1, customerDeck.size());
         assertEquals(1, inactiveCustomers.size());
         assertTrue(customers.getActiveCustomers().contains(order4));
 
         assertFalse(customers.isEmpty());
+        
+        // for(CustomerOrder co : customers.getActiveCustomers()) {
+        //     if(co == null) System.out.println("null");
+        //     else
+        //     System.out.println(co.toString());
+        // }
+
         assertEquals(order2, customers.peek());
         assertTrue(customers.customerWillLeaveSoon());
         assertEquals(CustomerOrder.CustomerOrderStatus.IMPATIENT, order2.getStatus());
@@ -870,6 +989,14 @@ public class CustomersTest {
         customers.addCustomerOrder(); // order3 in active set
         customers.remove(order2);
 
+        //System.out.println(customers.getActiveCustomers().size());
+
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
+
         // Active customers should be order3 -> null -> order1 || order2 is inactive
 
         // Sanity checking: if there is an error before the next addCustomerOrder(), something is wrong with the earlier addCustomer() calls, the remove(), or the various state functions. Fix them first
@@ -881,6 +1008,13 @@ public class CustomersTest {
         assertTrue(customers.getActiveCustomers().contains(order3));
         assertFalse(customers.getActiveCustomers().contains(order4));
         assertTrue(inactiveCustomers.contains(order2));
+
+        // System.out.println(customers.getCustomerDeck().size());
+        // for(CustomerOrder co : customers.getCustomerDeck()) {
+        //     if(co == null) System.out.println("null");
+        //     else
+        //     System.out.println(co.toString());
+        // }
 
         assertFalse(customers.customerWillLeaveSoon());
         assertFalse(customers.isEmpty());
@@ -938,6 +1072,12 @@ public class CustomersTest {
         // ADD!
         assertNull(customers.addCustomerOrder());
 
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
+
         // Active customers should be order4 -> order2 -> order1
         assertEquals(3, customers.size());
         assertEquals(1, customerDeck.size());
@@ -949,7 +1089,7 @@ public class CustomersTest {
         assertTrue(customers.customerWillLeaveSoon());
         assertEquals(CustomerOrder.CustomerOrderStatus.IMPATIENT, order1.getStatus());
         assertEquals(CustomerOrder.CustomerOrderStatus.WAITING, order2.getStatus());
-        assertEquals(CustomerOrder.CustomerOrderStatus.WAITING, order3.getStatus());
+        assertEquals(CustomerOrder.CustomerOrderStatus.WAITING, order4.getStatus());
     }
 
     @Test
@@ -1242,10 +1382,22 @@ public class CustomersTest {
         // ADD!
         assertThrows(EmptyStackException.class, () -> {customers.addCustomerOrder();});
 
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
+
         // Active customers should be null -> order5 -> order4
         assertEquals(2, customers.size());
         assertEquals(0, customerDeck.size());
         assertEquals(3, inactiveCustomers.size());
+
+        // for(CustomerOrder co : customers.getActiveCustomers()) {
+        //     if(co == null) System.out.println("null");
+        //     else
+        //     System.out.println(co.toString());
+        // }
 
         assertFalse(customers.isEmpty());
         assertEquals(order4, customers.peek());
@@ -1293,6 +1445,12 @@ public class CustomersTest {
         assertThrows(EmptyStackException.class, () -> {customers.addCustomerOrder();});
 
         // Active customers should be null -> order5 -> order3
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
+
         assertEquals(2, customers.size());
         assertEquals(0, customerDeck.size());
         assertEquals(3, inactiveCustomers.size());
@@ -1450,6 +1608,12 @@ public class CustomersTest {
         assertEquals(1, customers.size());
         assertEquals(0, customerDeck.size());
         assertEquals(4, inactiveCustomers.size());
+
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
 
         assertFalse(customers.isEmpty());
         assertEquals(order4, customers.peek());
@@ -1643,6 +1807,12 @@ public class CustomersTest {
 
         // Time passes!
         assertEquals(order1, customers.timePasses());
+
+        for(CustomerOrder co : customers.getActiveCustomers()) {
+            if(co == null) System.out.println("null");
+            else
+            System.out.println(co.toString());
+        }
 
         // Active customers should be empty -> order3 -> order2 || order1 is now inactive
         assertEquals(2, customers.size());
@@ -2359,32 +2529,49 @@ public class CustomersTest {
 
     // --- getFulfillable() ---
 
+    
+
     @Test
-    public void testGetFulfillable() throws FileNotFoundException, IOException, NoSuchFieldException, IllegalAccessException {
+    public void testGetFulfillable() throws ClassNotFoundException, FileNotFoundException, InvocationTargetException, IOException, NoSuchFieldException, IllegalAccessException {
         Customers customers = getDeterministicCustomers();
-        assertTrue(customers.getFulfilable(pantry).isEmpty());
+
+		Collection<CustomerOrder> fulfillable = getFulfilableWrapper(customers, pantry);
+        assertNotNull(fulfillable);
+        assertTrue(fulfillable.isEmpty());
 
         customers.addCustomerOrder();
-        assertTrue(customers.getFulfilable(pantry).isEmpty());
+
+        fulfillable = getFulfilableWrapper(customers, pantry);
+        assertNotNull(fulfillable);
+        assertTrue(fulfillable.isEmpty());
 
         customers.addCustomerOrder();
-        Collection<CustomerOrder> fulfillable = customers.getFulfilable(pantry);
+
+        fulfillable = getFulfilableWrapper(customers, pantry);
+        assertNotNull(fulfillable);
         assertEquals(1, fulfillable.size());
         assertEquals(order2, fulfillable.toArray()[0]);
 
         customers.addCustomerOrder();
-        fulfillable = customers.getFulfilable(pantry);
+        
+        fulfillable = getFulfilableWrapper(customers, pantry);
+        assertNotNull(fulfillable);
         assertEquals(2, fulfillable.size());
         assertTrue(fulfillable.contains(order2));
         assertTrue(fulfillable.contains(order3));
 
         customers.remove(order2);
-        fulfillable = customers.getFulfilable(pantry);
+
+        fulfillable = getFulfilableWrapper(customers, pantry);
+        assertNotNull(fulfillable);
         assertEquals(1, fulfillable.size());
         assertEquals(order3, fulfillable.toArray()[0]);
 
         customers.remove(order3);
-        assertTrue(customers.getFulfilable(pantry).isEmpty());
+
+        fulfillable = getFulfilableWrapper(customers, pantry);
+        assertNotNull(fulfillable);
+        assertTrue(fulfillable.isEmpty());
     }
 
     // --- getInactiveCustomersWithStatus() ---
