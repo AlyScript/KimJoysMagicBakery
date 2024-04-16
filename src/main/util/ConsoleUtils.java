@@ -36,9 +36,6 @@ public class ConsoleUtils {
      */
     public ConsoleUtils() {
         console = System.console();
-        if (console == null) {
-            throw new IllegalStateException("No console available");
-        }
     }
 
     /**
