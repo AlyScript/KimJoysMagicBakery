@@ -73,7 +73,7 @@ public class Customers implements java.io.Serializable {
      * @return the newly activated CustomerOrder if the deck is not empty, or null if it is empty, indicating no new customers can be added.
      * @throws EmptyStackException if the customer deck is empty, indicating that no more orders are available to draw.
      */
-    public CustomerOrder addCustomerOrder() {
+    public CustomerOrder addCustomerOrder() throws EmptyStackException {
         CustomerOrder c = timePasses();
         if(!customerDeck.isEmpty()) {
             ((LinkedList<CustomerOrder>) activeCustomers).add(0, drawCustomer());

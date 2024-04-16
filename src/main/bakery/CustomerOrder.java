@@ -138,7 +138,7 @@ public class CustomerOrder implements java.io.Serializable {
      * @return A list of {@link Ingredient} objects representing the ingredients used to fulfill and, if applicable, garnish the order.
      * @throws WrongIngredientsException if the order cannot be fulfilled with the provided ingredients.
      */
-    public List<Ingredient> fulfill(List<Ingredient> ingredients, boolean garnish) {
+    public List<Ingredient> fulfill(List<Ingredient> ingredients, boolean garnish) throws WrongIngredientsException {
         if(!canFulfill(ingredients)) {
             throw new WrongIngredientsException("Cannot fulfill order");
         }

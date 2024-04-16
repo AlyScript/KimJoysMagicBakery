@@ -3,31 +3,50 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Represents a player in a bakery-themed game, managing a collection of ingredients known as the player's hand.
+ * This class is central to the gameplay, as it handles the storage, retrieval, and management of ingredients that players collect,
+ * use, or exchange throughout the game. Each player is identified by a unique name, and their capabilities in the game are often
+ * determined by the ingredients they possess.
+ *
+ * The Player class provides methods to add and remove ingredients, check for the presence of specific ingredients, and
+ * get a string representation of the ingredients in hand. This functionality is crucial for implementing game rules related
+ * to recipe completion and resource management.
+ *
+ * @author Adam Aly
+ * @version 1.2
+ * @since 2023-04-01
+ * @see Ingredient
+ */
 public class Player implements java.io.Serializable{
     private List<Ingredient> hand;
     private String name;
     private static final long serialVersionUID = 11085168;
 
-    /** Constructor for Player class
-     *   @param name Name of the player
-     *   @return Player object
+    /**
+     * Constructs a new Player with the given name. The player's hand is initialized as an empty list of ingredients.
+     * This setup is crucial for starting the game with a clean slate for each player.
+     *
+     * @param name the unique identifier for the player, used throughout the game to track player actions and status.
      */
     public Player(String name) {
         this.name = name;
         hand = new ArrayList<>();
     }
 
-    /** add a number of ingredients to the player's hand
-     *   @param ingredients
-     *   @return none
+    /**
+     * Adds multiple ingredients to the player's hand. This method is typically used when the player acquires new ingredients.
+     *
+     * @param ingredients the list of ingredients to be added to the player's hand.
      */
     public void addToHand(List<Ingredient> ingredients) {
         hand.addAll(ingredients);
     }
 
-    /** Add an ingredient to the player's hand
-     *   @param ingredient Ingredient to be added to the player's hand
-     *   @return void
+    /**
+     * Adds a single ingredient to the player's hand. This method is used when the player acquires one new ingredient.
+     *
+     * @param ingredient the ingredient to be added to the player's hand.
      */
     public void addToHand(Ingredient ingredient) {
         hand.add(ingredient);
@@ -41,11 +60,16 @@ public class Player implements java.io.Serializable{
         return hand.contains(ingredient);
     }
 
-    /** Remove an ingredient from the player's hand
-     * 
-     *   @param Ingredient to be removed from the player's hand
+    /**
+     * Removes a specified ingredient from the player's hand. This method is used when an ingredient is used up
+     * or needs to be discarded from the player's inventory. If the specified ingredient is not found in the player's hand,
+     * a WrongIngredientsException is thrown, indicating the absence of the ingredient.
+     *
+     * @param ingredient the ingredient to be removed from the player's hand. It must not be null.
+     * @throws WrongIngredientsException if the ingredient is not present in the player's hand, with a detailed message
+     *         stating the missing ingredient and the player's name.
      */
-    public void removeFromHand(Ingredient ingredient) {
+    public void removeFromHand(Ingredient ingredient) throws WrongIngredientsException {
         if(!hand.remove(ingredient)) {
             throw new WrongIngredientsException(name + " does not have " + ingredient + " in their hand");
         }
@@ -121,6 +145,12 @@ public class Player implements java.io.Serializable{
         return result.toString();
     }
 
+    /**
+     * Returns a string representation of the player, primarily the player's name.
+     * This method is commonly used to display the player's identity in user interfaces or logs.
+     *
+     * @return The name of the player as a string.
+     */
     public String toString() {
         return name;
     }
