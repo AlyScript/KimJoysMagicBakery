@@ -14,6 +14,20 @@ import java.io.*;
 import bakery.CustomerOrder.CustomerOrderStatus;
 import util.*;
 
+/**
+ * Represents the central management class for a bakery-themed game, coordinating the actions of players,
+ * managing ingredient inventories, and processing customer orders. This class is responsible for initializing the game,
+ * distributing ingredients, and handling player actions such as drawing ingredients, passing them, baking layers,
+ * fulfilling orders, and refreshing the pantry.
+ * 
+ * The class utilizes various collections to manage layers, players, ingredients, and customer orders, ensuring that all game
+ * elements interact cohesively. It also tracks the current player and the number of actions used to enforce game rules regarding
+ * turn-based play and action limits.
+ *
+ * @author Adam Aly
+ * @version 1.0
+ * @since 2024
+ */
 public class MagicBakery implements java.io.Serializable {
     private Customers customers;
     private Collection<Layer> layers;
@@ -27,10 +41,25 @@ public class MagicBakery implements java.io.Serializable {
     private int currentPlayerIndex;
     private int actionsUsed;
 
+    /**
+     * Defines the types of actions that players can perform during their turn in the game.
+     * Each action type represents a different possible player interaction such as drawing ingredients,
+     * passing ingredients to other players, baking layers, fulfilling orders, and refreshing the pantry.
+     */
     public enum ActionType {
         DRAW_INGREDIENT, PASS_INGREDIENT, BAKE_LAYER, FULFIL_ORDER, REFRESH_PANTRY
     }
 
+    /**
+     * Initializes a new MagicBakery game with specified seed values and deck files for ingredients and layers.
+     * This constructor sets up the game environment by loading layers and ingredients from specified files,
+     * initializing player settings, and preparing the initial state of the pantry and player hands.
+     *
+     * @param seed the seed value used for randomizing game elements, ensuring varied game play.
+     * @param ingredientDeckFile the file path for the ingredient deck, used to populate the game's ingredient stock.
+     * @param layerDeckFile the file path for the layer deck, used to define available layers for players to bake.
+     * @throws FileNotFoundException if the specified deck files cannot be found, preventing game initialization.
+     */
     public MagicBakery(long seed, String ingredientDeckFile, String layerDeckFile) throws FileNotFoundException {
         try {
             layers = CardUtils.readLayerFile(layerDeckFile);
@@ -52,7 +81,16 @@ public class MagicBakery implements java.io.Serializable {
         actionsUsed = 0;
     }
 
-    public void bakeLayer(Layer layer) {
+    /**
+     * Attempts to bake a specified layer using ingredients from the current player's hand. This method checks if the player
+     * has sufficient actions remaining and the necessary ingredients, including the use of helpful ducks as substitutes.
+     * If successful, the layer is removed from the player's hand and added to their completed items.
+     *
+     * @param layer the layer to be baked, must not be null and must be bakeable according to the game rules.
+     * @throws TooManyActionsException if the player has no actions remaining.
+     * @throws WrongIngredientsException if the necessary ingredients are not present in the player's hand.
+     */
+    public void bakeLayer(Layer layer) throws TooManyActionsException, WrongIngredientsException {
         if(getActionsRemaining() <= 0) {
             throw new TooManyActionsException();
         }
@@ -78,7 +116,14 @@ public class MagicBakery implements java.io.Serializable {
         }
     }
 
-    private Ingredient drawFromPantryDeck() {
+    /**
+     * Draws a single ingredient from the pantry deck. If the pantry deck is empty, the pantry is restored from the discard pile.
+     * If both the pantry and discard pile are empty, an EmptyPantryException is thrown.
+     *
+     * @return the drawn ingredient from the pantry deck.
+     * @throws EmptyPantryException if both the pantry deck and discard pile are empty.
+     */
+    private Ingredient drawFromPantryDeck() throws EmptyPantryException {
         if (pantryDeck.isEmpty()) {
             if(pantryDiscard.isEmpty()) {
                 throw new EmptyPantryException("Both pantry and discard pile are empty.", null);
@@ -90,7 +135,15 @@ public class MagicBakery implements java.io.Serializable {
         return ingredient;
     }
 
-    public void drawFromPantry(String ingredientName) {
+    /**
+     * Draws an ingredient by name from the pantry to the current player's hand. If the named ingredient is found,
+     * it is moved to the player's hand and replaced in the pantry by drawing from the pantry deck.
+     *
+     * @param ingredientName the name of the ingredient to draw from the pantry.
+     * @throws TooManyActionsException if no actions are remaining for the current player.
+     * @throws WrongIngredientsException if the ingredient is not found in the pantry.
+     */
+    public void drawFromPantry(String ingredientName) throws TooManyActionsException, WrongIngredientsException {
         if(getActionsRemaining() <= 0) {
             throw new TooManyActionsException();
         }
@@ -110,7 +163,15 @@ public class MagicBakery implements java.io.Serializable {
         actionsUsed++;
     }
 
-    public void drawFromPantry(Ingredient ingredient) {
+     /**
+     * Draws an ingredient by name from the pantry to the current player's hand. If the named ingredient is found,
+     * it is moved to the player's hand and replaced in the pantry by drawing from the pantry deck.
+     *
+     * @param ingredient the name of the ingredient to draw from the pantry.
+     * @throws TooManyActionsException if no actions are remaining for the current player.
+     * @throws WrongIngredientsException if the ingredient is not found in the pantry.
+     */
+    public void drawFromPantry(Ingredient ingredient) throws TooManyActionsException, WrongIngredientsException {
         if(getActionsRemaining() <= 0) {
             throw new TooManyActionsException();
         }
@@ -125,8 +186,10 @@ public class MagicBakery implements java.io.Serializable {
     }
 
     /**
-     * Ends the current player's turn and advances to the next player.
-     * @return true if the turn was successfully ended, false otherwise
+     * Ends the current player's turn and advances to the next player. If the round completes and returns to the first player,
+     * additional game logic to process customer orders or other events may be executed.
+     *
+     * @return true if the turn successfully ends and transitions to the next player, false if conditions prevent ending the turn.
      */
     public boolean endTurn() {
         // if (getActionsRemaining() > 0) {
@@ -149,7 +212,16 @@ public class MagicBakery implements java.io.Serializable {
         return true;
     }
 
-    public List<Ingredient> fulfillOrder(CustomerOrder customer, boolean garnish) {
+    /**
+     * Attempts to fulfill a customer order using the current player's hand, optionally including garnishing. This method
+     * checks for sufficient actions and required ingredients before proceeding.
+     *
+     * @param customer the customer order to be fulfilled.
+     * @param garnish a boolean indicating whether to garnish the order if possible.
+     * @return a list of ingredients used in fulfilling (and potentially garnishing) the order.
+     * @throws TooManyActionsException if the player has no actions remaining to perform this task.
+     */
+    public List<Ingredient> fulfillOrder(CustomerOrder customer, boolean garnish) throws TooManyActionsException {
         List<Ingredient> usedIngredients = new ArrayList<>();
         List<Ingredient> drawnIngredients = new ArrayList<>();
         if(getActionsRemaining() <= 0) {
@@ -181,6 +253,12 @@ public class MagicBakery implements java.io.Serializable {
         return drawnIngredients;
     }
 
+    /**
+     * Determines the number of actions a player is permitted to take in their turn based on the number of players in the game.
+     * Fewer players allow for more actions per player to maintain game balance.
+     *
+     * @return the maximum number of actions a player can take in a turn.
+     */
     public int getActionsPermitted() {
         if(players.size() >= 4) {
             return 2;
@@ -188,10 +266,21 @@ public class MagicBakery implements java.io.Serializable {
         return 3;
     }
 
+    /**
+     * Retrieves the number of actions remaining for the current player for this turn.
+     *
+     * @return the number of remaining actions.
+     */
     public int getActionsRemaining() {
         return getActionsPermitted() - actionsUsed;
     }
 
+    /**
+     * Retrieves a collection of layers that the current player can potentially bake based on the ingredients in their hand.
+     * This method calculates which layers are feasible to bake by checking the player's current ingredient inventory.
+     *
+     * @return a collection of bakeable layers based on the current player's ingredients.
+     */
     public Collection<Layer> getBakeableLayers() {
         Collection<Layer> bakeableLayers = new ArrayList<>();
         for(Layer layer : layers) {
@@ -216,19 +305,39 @@ public class MagicBakery implements java.io.Serializable {
         return bakeableLayers;
     }
 
+    /**
+     * Retrieves the collection of players currently participating in the game.
+     *
+     * @return a collection of players in the game.
+     */
     public Collection<Player> getPlayers() {
         return this.players;
     }
 
+    /**
+     * Retrieves the current player based on the game's turn order.
+     *
+     * @return the currently active player.
+     */
     public Player getCurrentPlayer() {
         Player[] playerArray = players.toArray(new Player[0]);
         return playerArray[currentPlayerIndex];
     }
 
+    /**
+     * Retrieves the customers object which manages all customer orders in the game.
+     *
+     * @return the customers object containing all active and inactive customer orders.
+     */
     public Customers getCustomers() {
         return this.customers;
     }
 
+    /**
+     * Identifies and returns a collection of customer orders that can be fulfilled based on the current player's hand.
+     *
+     * @return a collection of fulfilable customer orders.
+     */
     public Collection<CustomerOrder> getFulfilableCustomers() {
         Collection<CustomerOrder> fulfilableCustomers = new ArrayList<>();
         for(CustomerOrder customerOrder : customers.getActiveCustomers()) {
@@ -239,6 +348,12 @@ public class MagicBakery implements java.io.Serializable {
         return fulfilableCustomers;
     }
 
+    /**
+     * Identifies and returns a collection of customer orders that can be garnished based on the remaining ingredients in the
+     * current player's hand after fulfilling their main requirements.
+     *
+     * @return a collection of garnishable customer orders.
+     */
     public Collection<CustomerOrder> getGarnishableCustomers() {
         Collection<CustomerOrder> garnishableCustomers = new ArrayList<>();
         ArrayList<Ingredient> availableIngredients = new ArrayList<>(getCurrentPlayer().getHand());
@@ -255,6 +370,12 @@ public class MagicBakery implements java.io.Serializable {
         return garnishableCustomers;
     }
 
+    /**
+     * Retrieves a sorted collection of all bakeable layers available in the game. The sorting ensures that the layers
+     * are presented in a consistent order, typically based on some attribute such as name or difficulty.
+     *
+     * @return a sorted collection of layers.
+     */
     public Collection<Layer> getLayers() {
         Set<Layer> layers = new HashSet<>(this.layers);
         ArrayList<Layer> result = new ArrayList<>(layers);
@@ -262,11 +383,25 @@ public class MagicBakery implements java.io.Serializable {
         return result;
     }
 
+    /**
+     * Retrieves the collection of ingredients currently available in the pantry.
+     *
+     * @return a collection of ingredients available for players to draw.
+     */
     public Collection<Ingredient> getPantry() {
         return pantry;
     }
 
-    public void passCard(Ingredient ingredient, Player recipient) {
+    /**
+ * Allows the current player to pass a specified ingredient to another player. This action is counted against
+    * the current player's available actions.
+    *
+    * @param ingredient the ingredient to be passed to another player.
+    * @param recipient the player who will receive the ingredient.
+    * @throws TooManyActionsException if the current player has no actions remaining.
+    * @throws WrongIngredientsException if the current player does not have the specified ingredient.
+    */
+    public void passCard(Ingredient ingredient, Player recipient) throws TooManyActionsException, WrongIngredientsException {
         if (getActionsRemaining() > 0) {
             if(getCurrentPlayer().getHand().contains(ingredient)) {
                 getCurrentPlayer().removeFromHand(ingredient);
@@ -280,6 +415,10 @@ public class MagicBakery implements java.io.Serializable {
         }
     }
 
+    /**
+     * Prints a summary of customer service records, including the number of customers served, garnished, and those who left.
+     * This method is used for reporting and game analysis purposes.
+     */
     public void printCustomerServiceRecord() {
         int garnished = customers.getInactiveCustomersWithStatus(CustomerOrderStatus.GARNISHED).size();
         int fulfilled = customers.getInactiveCustomersWithStatus(CustomerOrderStatus.FULFILLED).size() + garnished;
@@ -287,9 +426,11 @@ public class MagicBakery implements java.io.Serializable {
         System.out.printf("\nHappy customers eating baked goods: %d (%d Garnished) \nGone to greggs instead : %d\n", fulfilled, garnished, left);
     }
 
+    /**
+     * Prints the current state of the game, including the list of available layers, ingredients in the pantry, and the status
+     * of customer orders. This method provides a comprehensive view of the game's progress and is crucial for player decision-making.
+     */
     public void printGameState() {
-        //System.out.println("-----------------------------");
-        
         System.out.printf("Layers:\n  %s\n", StringUtils.layersToStrings(getLayers()));
         System.out.printf("Pantry\n  %s\n", StringUtils.ingredientsToStrings(getPantry()));
         if(customers.size() > 0)System.out.printf("Waiting for service:\n  %s\n", StringUtils.customerOrdersToStrings(customers.getActiveCustomers()));
@@ -307,7 +448,13 @@ public class MagicBakery implements java.io.Serializable {
         // System.out.println("-----------------------------");
     }
 
-    public void refreshPantry() {
+    /**
+     * Refreshes the pantry by shuffling all discarded ingredients back into the pantry deck. This action is counted against
+     * the current player's available actions.
+     *
+     * @throws TooManyActionsException if no actions are remaining for the current player to perform this task.
+     */
+    public void refreshPantry() throws TooManyActionsException {
         if(getActionsRemaining() <= 0) {
             throw new TooManyActionsException();
         }
@@ -321,19 +468,44 @@ public class MagicBakery implements java.io.Serializable {
         actionsUsed++;
     }
 
+    /**
+     * Saves the current game state to a file. This method serializes the entire game environment allowing the game
+     * to be paused and resumed at a later time.
+     *
+     * @param file the file to which the game state will be saved.
+     * @throws IOException if there is an error writing to the file.
+     */
     public void saveState(File file) throws IOException {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(this);
         }
     }
 
+    /**
+     * Loads a previously saved game state from a file. This method is used to resume a game from a specific point,
+     * restoring all relevant game data including player positions, pantry contents, and customer orders.
+     *
+     * @param file the file from which to load the game state.
+     * @return a MagicBakery instance representing the loaded game state.
+     * @throws IOException if there is an error reading from the file.
+     * @throws ClassNotFoundException if the serialized class is not found.
+     */
     public static MagicBakery loadState(File file) throws IOException, ClassNotFoundException {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             return (MagicBakery) ois.readObject();
         }
     }
 
-    public void startGame(List<String> playerNames, String customerDeckFile) throws FileNotFoundException {
+    /**
+     * Initializes and starts a new game session with the given player names and customer deck file. This method sets up
+     * players, loads customers, and prepares initial game settings.
+     *
+     * @param playerNames a list of names for players participating in the game.
+     * @param customerDeckFile the file path to load customer orders from.
+     * @throws FileNotFoundException if the customer deck file cannot be found.
+     * @throws IllegalArgumentException if the number of players is not between 2 and 5.
+     */
+    public void startGame(List<String> playerNames, String customerDeckFile) throws FileNotFoundException, IllegalArgumentException {
         // Instantiate players list
         for (String name : playerNames) {
             players.add(new Player(name));
@@ -429,7 +601,16 @@ public class MagicBakery implements java.io.Serializable {
             pantry.add(drawFromPantryDeck());
         }
     }
-
+    /**
+     * Retrieves a collection of actions that are currently available to the active player based on the game state.
+     * This method assesses the player's situation, including remaining actions and game conditions, to determine which actions
+     * the player can perform next. It dynamically compiles a list of possible actions such as drawing ingredients,
+     * passing them to another player, baking a layer, fulfilling an order, or refreshing the pantry, contingent upon the
+     * feasibility of each action at the moment of invocation.
+     *
+     * @return a collection of {@link ActionType} representing the actions available to the current player. If no actions
+     * are possible due to game rules or conditions, this collection will be empty.
+     */
     public Collection<Object> getAvailableActions() {
         ArrayList<Object> availableActions = new ArrayList<>();
         if (getActionsRemaining() > 0) {
