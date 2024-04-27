@@ -192,23 +192,18 @@ public class MagicBakery implements java.io.Serializable {
      * @return true if the turn successfully ends and transitions to the next player, false if conditions prevent ending the turn.
      */
     public boolean endTurn() {
-        // if (getActionsRemaining() > 0) {
-        //     System.out.println("You still have actions remaining.");
-        //     return false;
-        // }
-    
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        actionsUsed = 0;
     
         if (currentPlayerIndex == 0) {
             if(customers.getCustomerDeck().isEmpty()) {
                 customers.timePasses();
                 return false;
             } else {
-                System.out.println("New round");
                 customers.addCustomerOrder();
             }
+            return true;
         }
-        actionsUsed = 0;
         return true;
     }
 
@@ -627,6 +622,20 @@ public class MagicBakery implements java.io.Serializable {
             availableActions.add(ActionType.REFRESH_PANTRY);
         }
         return availableActions;
+    }
+
+    /**
+     * Retrieves a collection of actions that are currently available to the active player based on the game state.
+     * This method assesses the player's situation, including remaining actions and game conditions, to determine which actions
+     * the player can perform next. It dynamically compiles a list of possible actions such as drawing ingredients,
+     * passing them to another player, baking a layer, fulfilling an order, or refreshing the pantry, contingent upon the
+     * feasibility of each action at the moment of invocation.
+     *
+     * @return a collection of {@link ActionType} representing the actions available to the current player. If no actions
+     * are possible due to game rules or conditions, this collection will be empty.
+     */
+    public Stack<Ingredient> getPantryDeck() {
+        return (Stack<Ingredient>) pantryDeck;
     }
 
 }
