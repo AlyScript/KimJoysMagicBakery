@@ -20,9 +20,9 @@ import bakery.Layer;
 import bakery.MagicBakery;
 import bakery.MagicBakery.ActionType;
 import bakery.Player;
+import bakery.CustomerOrder.CustomerOrderStatus;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -31,8 +31,6 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -46,13 +44,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import util.StringUtils;
 
 public class GameBoardUI {
 
     private Stage stage;
     private MagicBakery game;
-    private Label gameStateLabel; // To display current game state or messages
+    private Label gameStateLabel; 
     private Button drawIngredientButton;
     private Button bakeLayerButton;
     private Button fulfillOrderButton;
@@ -76,8 +73,8 @@ public class GameBoardUI {
     private boolean isPassMode = false;
     private boolean isRefreshMode = false;
     private Ingredient selectedIngredient;
-    final double targetWidth = 20;  // Set the width you want
-    final double targetHeight = 20; // Set the height you want
+    final double targetWidth = 20;  
+    final double targetHeight = 20; 
     private Button saveButton;
     private Button quitButton;
 
@@ -96,22 +93,19 @@ public class GameBoardUI {
         ColumnConstraints column1 = new ColumnConstraints();
         ColumnConstraints column2 = new ColumnConstraints();
         ColumnConstraints playerColumn = new ColumnConstraints();
-        playerColumn.setPercentWidth(20); // Set the width percentage of the player column
-        gameBoardGrid.getColumnConstraints().addAll(column1, column2, playerColumn); // Add more columns as necessary
+        playerColumn.setPercentWidth(20); 
+        gameBoardGrid.getColumnConstraints().addAll(column1, column2, playerColumn); 
 
 
-        setupGameBoardSections(); // This will initialize and layout the game sections
+        setupGameBoardSections();
 
         Scene scene = new Scene(gameBoardGrid, 1000, 400); // Adjust the size as necessary
-        // Set the CSS style for the background
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
     }
 
     public void show() {
-        // Simply make the stage visible (or other minor adjustments)
-        // All setup is already done in initUI
         stage.show();
     }
 
@@ -130,14 +124,12 @@ public class GameBoardUI {
     }
 
     private void setupIngredientsSection() {
-        // This will be the container for ingredient buttons
         ingredientSection = new HBox(10);
         ingredientSection.setAlignment(Pos.CENTER);
         Label pantryLabel = new Label("Pantry");
         pantryLabel.setStyle("-fx-font-weight: bold;");
         ingredientSection.getChildren().add(pantryLabel);
 
-        // Add the top ingredient
         Ingredient topIngredient = game.getPantryDeck().peek();
         if (topIngredient != null) {
             Image topImage = imageManager.getImage(topIngredient.toString());
@@ -152,13 +144,11 @@ public class GameBoardUI {
             countLabel.setStyle("-fx-font-weight: bold;");
             countLabel.setTextFill(Color.RED);
             StackPane.setAlignment(countLabel, Pos.TOP_RIGHT);
-            // StackPane.setMargin(countLabel, new Insets(5, 5, 0, 0));
             stackPane.getChildren().add(countLabel);
     
             ingredientSection.getChildren().add(stackPane);
         }
     
-        // Repopulate the ingredientSection with buttons for each ingredient
         for (Ingredient ingredient : game.getPantry()) {
             Image image = imageManager.getImage(ingredient.toString());
             ImageView imageView = new ImageView(image);
@@ -170,7 +160,6 @@ public class GameBoardUI {
             ingredientSection.getChildren().add(ingredientButton);
         }
         
-        // Place the ingredientSection at  row 0 in the GridPane
         gameBoardGrid.add(ingredientSection, 0, 0); // Column 0, Row 1
     }
     
@@ -183,7 +172,6 @@ public class GameBoardUI {
         layersLabel.setStyle("-fx-font-weight: bold;");
         layerSection.getChildren().add(layersLabel);
     
-        // Here, I'm assuming you have similar methods to get the top layer and its count
         List<Layer> layersList = new ArrayList<>(game.getLayers());
         Layer topLayer = layersList.get(layersList.size() - 1); 
         if (topLayer != null) {
@@ -204,19 +192,14 @@ public class GameBoardUI {
         }
     
         for (Layer layer : game.getBakeableLayers()) {
-            // Use ImageManager to get the image for the ingredient
             Image image = imageManager.getImage(layer.toString());
             ImageView imageView = new ImageView(image);
             
-            // Set the size you want for the ImageView
             imageView.setFitWidth(targetWidth);
             imageView.setFitHeight(targetHeight);
             
-            // Preserve the aspect ratio
-            //imageView.setPreserveRatio(true);
             Button layerButton = new Button();
             layerButton.setGraphic(new ImageView(image));
-            // Set the action to perform when the ingredient button is clicked
             layerButton.setOnAction(e -> handleLayerSelection(layer));
             layerSection.getChildren().add(layerButton);
         }
@@ -227,18 +210,15 @@ public class GameBoardUI {
             layerSection.getChildren().add(imageView);
         }
     
-        gameBoardGrid.add(layerSection, 0, 1); // Adjust the row as needed
+        gameBoardGrid.add(layerSection, 0, 1);
     }
     
     private void setupPlayerSection() {
         playersSection = new VBox(1);
         playersSection.setPadding(new Insets(10, 0, 0, 20));
-        // Label playersLabel = new Label("  Players");
-        // playersSection.getChildren().add(playersLabel);
     
         int count = 1;
         for (Player player : game.getPlayers()) {
-            // Use ImageManager to get the image for the player
             String curr = " (Current Player)";
             if(player != game.getCurrentPlayer()) {
                 curr = "";
@@ -251,28 +231,24 @@ public class GameBoardUI {
             Image image = imageManager.getImage(playerStr);
             ImageView imageView = new ImageView(image);
             
-            // Set the size you want for the ImageView
             imageView.setFitWidth(targetWidth);
             imageView.setFitHeight(targetHeight);
             
-            // Preserve the aspect ratio
-            //imageView.setPreserveRatio(true);
             Button playerButton = new Button();
             playerButton.setGraphic(new ImageView(image));
-            // Set the action to perform when the ingredient button is clicked
             playerButton.setOnAction(e -> handlePlayerSelection(player));
             playersSection.getChildren().add(playerButton);
             count++;
         }
         
-        gameBoardGrid.add(playersSection, 2, 0, 1, GridPane.REMAINING); // Column 2, Row 0, ColumnSpan 1, RowSpan GridPane.REMAINING
+        gameBoardGrid.add(playersSection, 2, 0, 1, GridPane.REMAINING);
     }
 
     private void handlePlayerSelection(Player player) {
         if(isPassMode && selectedIngredient != null) {
             game.passCard(selectedIngredient, player);
             isPassMode = false;
-            selectedIngredient = null; // Reset the selected ingredient
+            selectedIngredient = null; 
             updateGameState();
         }
     }
@@ -302,22 +278,16 @@ public class GameBoardUI {
         }
     
         for (CustomerOrder customerOrder : game.getCustomers().getActiveCustomers()) {
-            // Use ImageManager to get the image for the ingredient
             if(customerOrder != null) {
                 Image image = imageManager.getImage(customerOrder.toString());
                 ImageView imageView = new ImageView(image);
-                
-                // Preserve the aspect ratio
-                //imageView.setPreserveRatio(true);
                 Button customerButton = new Button();
                 customerButton.setGraphic(new ImageView(image));
-                // Disable the button if the customerOrder is not fulfillable
                 if (!customerOrder.canFulfill(game.getCurrentPlayer().getHand())) {
                     customerButton.setDisable(true);
                 } else {
                     customerButton.setDisable(false);
                 }
-                // Set the action to perform when the ingredient button is clicked
                 customerButton.setOnAction(e -> handleCustomerSelection(customerOrder));
                 customerSection.getChildren().add(customerButton);
             } else {
@@ -327,12 +297,10 @@ public class GameBoardUI {
             }
         }
     
-        gameBoardGrid.add(customerSection, 0, 2); // Adjust the row as needed
+        gameBoardGrid.add(customerSection, 0, 2);
     }
 
     private void handleCustomerSelection(CustomerOrder customerOrder) {
-        // Implement the logic that should be triggered when a customer order is selected
-        // For example, fulfilling a customer order:
         if(isFulfillMode) {
             if(customerOrder.canGarnish(game.getCurrentPlayer().getHand())) {
                 Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -353,7 +321,6 @@ public class GameBoardUI {
             }
             isFulfillMode = false;
         }
-        // Then update the game state UI
         updateGameState();
     }
 
@@ -404,27 +371,19 @@ public class GameBoardUI {
             fulfillButton.setDisable(true);
         }
     
-        // Setup the action listeners for each button as needed
-    
         actionButtonsSection.getChildren().addAll(refreshButton, drawButton, passButton, bakeButton, fulfillButton);
-    
-        playerHandSection = new HBox(10); // Assuming there is a method to populate this with the player's hand
+        playerHandSection = new HBox(10);
         playerHandSection.setAlignment(Pos.CENTER);
-        // Populate playerHandSection with cards...
-    
         bottomSection = new VBox(10);
         bottomSection.setAlignment(Pos.CENTER);
         bottomSection.getChildren().addAll(actionButtonsSection, playerHandSection);
-    
-        // Add the turn information at the top of the bottom section
         String turnInfo = String.format("%s's turn. Actions Remaining: %d/%d", game.getCurrentPlayer().toString(), game.getActionsRemaining(), game.getActionsPermitted());
-        turnInfoLabel = new Label(turnInfo); // Update this dynamically as needed
-        bottomSection.getChildren().add(0, turnInfoLabel); // Add at the beginning of the VBox
+        turnInfoLabel = new Label(turnInfo); 
+        bottomSection.getChildren().add(0, turnInfoLabel); 
 
         playerHandSection = new HBox(10);
         playerHandSection.setAlignment(Pos.CENTER);
 
-        // Add a label for the player's hand
         Label handLabel = new Label("Hand:");
         handLabel.setStyle("-fx-font-weight: bold;");
         playerHandSection.getChildren().add(handLabel);
@@ -434,7 +393,6 @@ public class GameBoardUI {
             handMap.put(ingredient, handMap.getOrDefault(ingredient, 0) + 1);
         }
 
-        // Add buttons for each ingredient in the player's hand
         for (Ingredient ingredient : handMap.keySet()) {
             Image image = imageManager.getImage(ingredient.toString());
             Button ingredientButton = new Button();
@@ -444,36 +402,28 @@ public class GameBoardUI {
                     selectedIngredient = ingredient;
                 }
             });
-            // Add a label with the count to the top right corner of the button
             Label countLabel = new Label("x" + handMap.get(ingredient));
             countLabel.setTextFill(Color.RED);
             countLabel.setStyle("-fx-font-weight: bold;");
 
-            // Create a StackPane to layer the Button and Label on top of each other
             StackPane stackPane = new StackPane();
             stackPane.getChildren().addAll(ingredientButton, countLabel);
-            StackPane.setAlignment(countLabel, Pos.TOP_RIGHT); // Position the Label at the top right corner of the StackPane
+            StackPane.setAlignment(countLabel, Pos.TOP_RIGHT); 
 
             playerHandSection.getChildren().add(stackPane);
         }
 
         bottomSection.getChildren().add(playerHandSection);
     
-        gameBoardGrid.add(bottomSection, 0, 3); // Add the bottom section to the GridPane at the bottom
+        gameBoardGrid.add(bottomSection, 0, 3);
     }
     
     private void updateTurnInfo() {
         String turnInfo = String.format("%s's turn. Actions Remaining: %d/%d", game.getCurrentPlayer().toString(), game.getActionsRemaining(), game.getActionsPermitted());
         turnInfoLabel.setText(turnInfo);
     }
-    
-    // Remember to call setupBottomSection() in your initUI method
-    // and updateTurnInfo() in your updateGameState() method
 
     private void handleIngredientSelection(Ingredient ingredient) {
-        // Implement the logic that should be triggered when an ingredient is selected
-        // For example, drawing an ingredient from the pantry:
-        // Then update the game state UI
         if (isDrawMode) {
             game.drawFromPantry(ingredient.toString());
             isDrawMode = false;
@@ -484,23 +434,12 @@ public class GameBoardUI {
     }
 
     private void handleLayerSelection(Layer layer) {
-        // Implement the logic that should be triggered when a layer is selected
-        // For example, baking a layer:
         if(isBakeMode) {
             game.bakeLayer(layer);
             isBakeMode = false;
         }
-        // Then update the game state UI
         updateGameState();
     }
-
-    // private void handleCustomerSelection(CustomerOrder customerOrder) {
-    //     // Implement the logic that should be triggered when a customer order is selected
-    //     // For example, fulfilling a customer order:
-    //     game.fulfillOrder(customerOrder, false);
-    //     // Then update the game state UI
-    //     updateGameState();
-    // }
 
     private void updateGameState() {
         if(game.getCustomers().getCustomerDeck().size() < 1) {
@@ -514,26 +453,20 @@ public class GameBoardUI {
             updateTurnInfo();
             game.endTurn();
         }
-        // Update each section of the UI
         updateIngredientsSection();
         updateLayersSection();
         updateCustomersSection();
         updateBottomSection();
         updatePlayersSection();
-        
-        // ... and other sections as needed
     }
     
     private void updateIngredientsSection() {
-        // Clear the ingredientSection
         ingredientSection.getChildren().clear();
     
-        // Add the pantry label
         Label pantryLabel = new Label("Pantry");
         pantryLabel.setStyle("-fx-font-weight: bold;");
         ingredientSection.getChildren().add(pantryLabel);
     
-        // Add the top ingredient
         Ingredient topIngredient = game.getPantryDeck().peek();
         if (topIngredient != null) {
             Image topImage = imageManager.getImage(topIngredient.toString());
@@ -548,13 +481,11 @@ public class GameBoardUI {
             countLabel.setStyle("-fx-font-weight: bold;");
             countLabel.setTextFill(Color.RED);
             StackPane.setAlignment(countLabel, Pos.TOP_RIGHT);
-            // StackPane.setMargin(countLabel, new Insets(5, 5, 0, 0));
             stackPane.getChildren().add(countLabel);
     
             ingredientSection.getChildren().add(stackPane);
         }
     
-        // Repopulate the ingredientSection with buttons for each ingredient
         for (Ingredient ingredient : game.getPantry()) {
             Image image = imageManager.getImage(ingredient.toString());
             ImageView imageView = new ImageView(image);
@@ -568,12 +499,10 @@ public class GameBoardUI {
     }
 
     private void updateBottomSection() {
-        // Clear the bottomSection
         bottomSection.getChildren().clear();
         actionButtonsSection.getChildren().clear();
         playerHandSection.getChildren().clear();
     
-        // Add the oven label
         Button refreshButton = new Button("Refresh");
         refreshButton.setOnAction(e -> isRefreshMode = true);
         Button drawButton = new Button("Draw");
@@ -610,11 +539,9 @@ public class GameBoardUI {
             fulfillButton.setDisable(true);
         }
     
-        // Setup the action listeners for each button as needed
-    
         actionButtonsSection.getChildren().addAll(refreshButton, drawButton, passButton, bakeButton, fulfillButton);
     
-        playerHandSection = new HBox(10); // Assuming there is a method to populate this with the player's hand
+        playerHandSection = new HBox(10);
         playerHandSection.setAlignment(Pos.CENTER);
         // Populate playerHandSection with cards...
     
@@ -624,9 +551,9 @@ public class GameBoardUI {
     
         // Add the turn information at the top of the bottom section
         String turnInfo = String.format("%s's turn. Actions Remaining: %d/%d", game.getCurrentPlayer().toString(), game.getActionsRemaining(), game.getActionsPermitted());
-        turnInfoLabel = new Label(turnInfo); // Update this dynamically as needed
+        turnInfoLabel = new Label(turnInfo); 
         turnInfoLabel.setStyle("-fx-font-weight: bold;");
-        bottomSection.getChildren().add(0, turnInfoLabel); // Add at the beginning of the VBox
+        bottomSection.getChildren().add(0, turnInfoLabel); 
 
         // Add a label for the player's hand
         Label handLabel = new Label("Hand:");
@@ -656,14 +583,16 @@ public class GameBoardUI {
             // Create a StackPane to layer the Button and Label on top of each other
             StackPane stackPane = new StackPane();
             stackPane.getChildren().addAll(ingredientButton, countLabel);
-            StackPane.setAlignment(countLabel, Pos.TOP_RIGHT); // Position the Label at the top right corner of the StackPane
+            StackPane.setAlignment(countLabel, Pos.TOP_RIGHT); 
+            // Position the Label at the top right corner of the StackPane
 
             playerHandSection.getChildren().add(stackPane);
         }
 
         refreshButton.setOnAction(e -> handleRefreshPantry());
 
-        gameBoardGrid.add(bottomSection, 0, 3); // Add the bottom section to the GridPane at the bottom
+        gameBoardGrid.add(bottomSection, 0, 3); 
+        // Add the bottom section to the GridPane at the bottom
     }
 
     private void updateLayersSection() {
@@ -673,7 +602,6 @@ public class GameBoardUI {
         layersLabel.setStyle("-fx-font-weight: bold;");
         layerSection.getChildren().add(layersLabel);
     
-        // Here, I'm assuming you have similar methods to get the top layer and its count
         List<Layer> layersList = new ArrayList<>(game.getLayers());
         Layer topLayer = layersList.get(layersList.size() - 1); 
         if (topLayer != null) {
@@ -688,26 +616,20 @@ public class GameBoardUI {
             countLabel.getStyleClass().add("count-label");
             countLabel.setStyle("-fx-font-weight: bold;");
             StackPane.setAlignment(countLabel, Pos.TOP_RIGHT);
-            // StackPane.setMargin(countLabel, new Insets(5, 5, 0, 0));
     
             stackPane.getChildren().add(countLabel);
             layerSection.getChildren().add(stackPane);
         }
     
         for (Layer layer : game.getBakeableLayers()) {
-            // Use ImageManager to get the image for the ingredient
             Image image = imageManager.getImage(layer.toString());
             ImageView imageView = new ImageView(image);
             
-            // Set the size you want for the ImageView
             imageView.setFitWidth(targetWidth);
             imageView.setFitHeight(targetHeight);
             
-            // Preserve the aspect ratio
-            //imageView.setPreserveRatio(true);
             Button layerButton = new Button();
             layerButton.setGraphic(new ImageView(image));
-            // Set the action to perform when the ingredient button is clicked
             layerButton.setOnAction(e -> handleLayerSelection(layer));
             layerSection.getChildren().add(layerButton);
         }
@@ -721,11 +643,9 @@ public class GameBoardUI {
 
     private void updatePlayersSection() {
         playersSection.getChildren().clear();
-        // Create a new VBox for the players section
     
         int count = 1;
         for (Player player : game.getPlayers()) {
-            // Use ImageManager to get the image for the player
             String curr = " (Current Player)";
             if(player != game.getCurrentPlayer()) {
                 curr = "";
@@ -738,15 +658,11 @@ public class GameBoardUI {
             Image image = imageManager.getImage(playerStr);
             ImageView imageView = new ImageView(image);
             
-            // Set the size you want for the ImageView
             imageView.setFitWidth(targetWidth);
             imageView.setFitHeight(targetHeight);
             
-            // Preserve the aspect ratio
-            //imageView.setPreserveRatio(true);
             Button playerButton = new Button();
             playerButton.setGraphic(new ImageView(image));
-            // Set the action to perform when the ingredient button is clicked
             playerButton.setOnAction(e -> handlePlayerSelection(player));
             playersSection.getChildren().add(playerButton);
             count++;
@@ -771,19 +687,16 @@ public class GameBoardUI {
             countLabel.setTextFill(Color.RED);
             countLabel.getStyleClass().add("count-label");
             StackPane.setAlignment(countLabel, Pos.TOP_RIGHT);
-            // StackPane.setMargin(countLabel, new Insets(5, 5, 0, 0));
 
             stackPane.getChildren().add(countLabel);
             customerSection.getChildren().add(stackPane);
         }
     
         for (CustomerOrder customerOrder : customer.getActiveCustomers()) {
-            // Use ImageManager to get the image for the ingredient
             if(customerOrder != null) {
                 Image image = imageManager.getImage(customerOrder.toString());
                 ImageView imageView = new ImageView(image);
                 
-                // Preserve the aspect ratio
                 //imageView.setPreserveRatio(true);
                 Button customerButton = new Button();
                 customerButton.setGraphic(new ImageView(image));
@@ -859,35 +772,42 @@ private void setupSave() throws IOException{
         alert.showAndWait();
     });
 
-    // Create a container for the buttons
-    HBox buttonBox = new HBox(10); // 10 pixel spacing between buttons
-    buttonBox.getChildren().addAll(saveButton, quitButton, infoButton);
+    Button fulfilled = new Button("Fulfilled");
+    fulfilled.setStyle("-fx-background-color: #800080; -fx-text-fill: #FFFFFF;");
+    fulfilled.setOnMouseEntered(e -> fulfilled.setStyle("-fx-background-color: #4B0082; -fx-text-fill: #FFFFFF;"));
+    fulfilled.setOnMouseExited(e -> fulfilled.setStyle("-fx-background-color: #800080; -fx-text-fill: #FFFFFF;"));
+
+    // Set the action for the fulfilled button
+    fulfilled.setOnAction(e -> {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Fulfilled");
+        alert.setHeaderText("Fulfilled Customers");
+        int garnished = game.getCustomers().getInactiveCustomersWithStatus(CustomerOrderStatus.GARNISHED).size();
+        int completed = game.getCustomers().getInactiveCustomersWithStatus(CustomerOrderStatus.FULFILLED).size() + garnished;
+        int left = game.getCustomers().getInactiveCustomersWithStatus(CustomerOrderStatus.GIVEN_UP).size();
+        String result = String.format("\nHappy customers eating baked goods: %d (%d Garnished) \nGone to greggs instead : %d\n", completed, garnished, left);
+        alert.setContentText(result);
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setPrefSize(680, 250);
+        dialogPane.setStyle("-fx-font-weight: bold; -fx-font-size: 1.3em; -fx-text-fill: red;");
+        alert.showAndWait();
+    });
+
+    HBox buttonBox = new HBox(10); 
+    buttonBox.getChildren().addAll(saveButton, quitButton, infoButton, fulfilled);
 
     AnchorPane anchorPane = new AnchorPane(buttonBox);
 
-// Set the AnchorPane constraints so that the HBox is aligned to the top right
     AnchorPane.setTopAnchor(buttonBox, 0.0);
     AnchorPane.setRightAnchor(buttonBox, 0.0);
 
-    // Add the AnchorPane to the top right cell of your GridPane
-    gameBoardGrid.add(anchorPane, 3, 0); // Adjust the column and row indices as needed
+    gameBoardGrid.add(anchorPane, 3, 0);
 }
-
-// private void updateSaveLoad() {
-//     // Enable or disable the buttons based on the game state
-//     // Assuming game is your Game object
-//     saveButton.setDisable(!game.canSave());
-//     quitButton.setDisable(!game.canQuit());
-// }
 
 private void handleSave() throws IOException{
     // Save the game
     File file = new File("savefile.txt");
     game.saveState(file);
-    
-    // StartScreenUI mainMenu = new StartScreenUI(stage);
-    // Scene mainMenuScene = new Scene(((Scene) mainMenu).getRootScene(), 800, 600); // Replace 800 and 600 with desired width and height
-    // stage.setScene(mainMenuScene);
 }
 
 private void handleQuit() {

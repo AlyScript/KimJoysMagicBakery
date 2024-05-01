@@ -77,11 +77,11 @@ public class PlayerNameInputUI {
     
         long seed = new Random().nextLong();
         try {
-            MagicBakery game = new MagicBakery(seed, "/Users/adamaly/comp16412-bakery_n61969aa/io/ingredients.csv", "/Users/adamaly/comp16412-bakery_n61969aa/io/layers.csv");
-            game.startGame(Arrays.asList(names), "/Users/adamaly/comp16412-bakery_n61969aa/io/customers.csv");
+            MagicBakery game = new MagicBakery(seed, "io/ingredients.csv", "io/layers.csv");
+            game.startGame(Arrays.asList(names), "customers.csv");
             new GameBoardUI(stage, game).show();
         } catch (FileNotFoundException e1) {
-            e1.printStackTrace(); // Consider displaying an error message to the user
+            e1.printStackTrace();
         }
     }
 }
