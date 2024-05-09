@@ -78,7 +78,7 @@ public class PlayerNameInputUI {
         long seed = new Random().nextLong();
         try {
             MagicBakery game = new MagicBakery(seed, "io/ingredients.csv", "io/layers.csv");
-            game.startGame(Arrays.asList(names), "customers.csv");
+            game.startGame(Arrays.asList(names), "io/customers.csv");
             new GameBoardUI(stage, game).show();
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
